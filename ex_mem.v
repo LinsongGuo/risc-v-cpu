@@ -58,16 +58,7 @@ module ex_mem(
             mem_rdata2 <= `ZeroWord; 
             mem_flag <= 1'b0;
         end else begin   
-            if (stall[3] == `Stop && stall[4] == `NoStop) begin
-                mem_opcode <= 7'b0;
-                mem_opt <= `OptNOP;
-                mem_we <= `Disable;
-                mem_waddr <= `NOPRegAddr;
-                mem_alu <= `ZeroWord;
-                mem_cond <= 1'b0;
-                mem_rdata2 <= `ZeroWord; 
-                mem_flag <= 1'b0;  
-            end else if (stall[3] == `NoStop) begin
+            if (stall[3] == `NoStop) begin
                 mem_opcode <= ex_opcode;
                 mem_opt <= ex_opt;
                 mem_we <= ex_we;
@@ -76,6 +67,8 @@ module ex_mem(
                 mem_cond <= ex_cond;
                 mem_rdata2 <= ex_rdata2;   
                 mem_flag <= 1'b1; 
+            end else begin
+                mem_flag <= 1'b0;
             end
         end
     end

@@ -25,6 +25,7 @@ module id(
 	input wire rst,
 	
 	//input from if_id
+	input wire first_i,
 	input wire[`InstAddrBus] pc_i,
 	input wire[`InstBus] inst_i,
 	
@@ -69,7 +70,7 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        end else begin 
+        end else if (first_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
 	        pc_o = pc_i;
@@ -298,6 +299,20 @@ module id(
 				 default:
 				 	begin opt_o = `OptNOP; end	
 	        endcase
+    	end else begin
+    		re1_o = `Disable;
+        	re2_o = `Disable;
+        	raddr1_o = `NOPRegAddr;
+        	raddr2_o = `NOPRegAddr;
+        	pc_o = `ZeroWord;
+        	opcode_o = `OpcodeNOP;
+        	opt_o = `OptNOP;
+        	rdata1_o = `ZeroWord;
+        	rdata2_o = `ZeroWord;
+        	we_o = `Disable;
+        	waddr_o = `NOPRegAddr;
+        	imm_o = `ZeroWord;
+        	shamt_o = 5'b0;
     	end
     end
 	

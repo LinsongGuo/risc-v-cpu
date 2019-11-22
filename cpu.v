@@ -62,9 +62,11 @@ module cpu(
     //if -- if_id
     wire[`InstAddrBus] pc_from_if_to_ifid;
     wire flag_from_if_to_ifid;
-    wire inst_from_if_to_ifid; 
+    wire first_from_if_to_ifid;
+    wire[`InstBus] inst_from_if_to_ifid; 
 
     //if_id -- id
+    wire first_from_ifid_to_id;
     wire[`InstAddrBus] pc_from_ifid_to_id;
     wire[`InstBus] inst_from_ifid_to_id;
 
@@ -115,6 +117,7 @@ module cpu(
     wire[`RegBus] alu_from_exmem_to_mem;
     wire cond_from_exmem_to_mem;
     wire[`RegBus] rdata2_from_exmem_to_mem;
+    wire flag_from_exmem_to_mem;
 
     //mem -- mem_wb / regfile(forwarding)
     wire[`OpcodeBus] opcode_from_mem;
@@ -156,6 +159,7 @@ module cpu(
 
         .pc_o(pc_from_if_to_ifid),
         .flag_o(flag_from_if_to_ifid),
+        .first_o(first_from_if_to_ifid),
         .inst_o(inst_from_if_to_ifid)
     );
 
@@ -163,19 +167,21 @@ module cpu(
         .clk(clk_in), .rst(rst_in),
 
         .if_flag(flag_from_if_to_ifid),
+        .if_first(flag_from_if_to_ifid),
         .if_pc(pc_from_if_to_ifid),
         .if_inst(inst_from_if_to_ifid),
 
         .stall(stall),
 
+        .id_first(first_from_ifid_to_id),
         .id_pc(pc_from_ifid_to_id),
         .id_inst(inst_from_ifid_to_id)
     );
-
     
     id id0(
         .rst(rst_in),
 
+        .first_i(first_from_ifid_to_id),
         .pc_i(pc_from_ifid_to_id),
         .inst_i(inst_from_ifid_to_id),
 
@@ -258,13 +264,16 @@ module cpu(
         .ex_cond(cond_from_ex_to_exmem),
         .ex_rdata2(rdata2_from_ex_to_exmem),
 
+        .stall(stall),
+        
         .mem_opcode(opcode_from_exmem_to_mem),
         .mem_opt(opt_from_exmem_to_mem),
         .mem_we(we_from_exmem_to_mem),
         .mem_waddr(waddr_from_exmem_to_mem),
         .mem_alu(alu_from_exmem_to_mem),
         .mem_cond(cond_from_exmem_to_mem),
-        .mem_rdata2(rdata2_from_exmem_to_mem)
+        .mem_rdata2(rdata2_from_exmem_to_mem),
+        .mem_flag(flag_from_exmem_to_mem)
     );
 
     mem mem0(
@@ -277,6 +286,7 @@ module cpu(
         .alu_i(alu_from_exmem_to_mem),
         .cond_i(cond_from_exmem_to_mem),
         .rdata2_i(rdata2_from_exmem_to_mem),
+        .flag_i(flag_from_exmem_to_mem),
 
         .opcode_o(opcode_from_mem),
         .opt_o(opt_from_mem_to_memwb),

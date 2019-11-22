@@ -27,7 +27,7 @@ module stallctrl(
 	input wire stallreq_from_if,
 	input wire stallreq_from_id,
 	input wire stallreq_from_mem,
-
+	
 	output reg[`StallBus] stall
     );
 	
@@ -40,8 +40,8 @@ module stallctrl(
 			stall = 5'b00001;
 		end else begin
 			if (stallreq_from_mem == `Stop) begin
-				stall = 5'b11111;
-			end else if (stallreq_from_id == `Stop) begin
+				stall = 5'b11110;
+			else if (stallreq_from_id == `Stop) begin
 				stall = 5'b00011;
 			end else if (stallreq_from_if == `Stop || stallreq_from_pcreg == `Stop) begin
 				stall = 5'b00001;

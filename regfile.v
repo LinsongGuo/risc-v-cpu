@@ -60,6 +60,13 @@ module regfile(
   
     reg stallreq_from_id_reg1, stallreq_from_id_reg2;
 
+    integer i;
+    initial begin
+    	for (i = 0; i < 32; i = i + 1) begin
+    		regs[i] = 32'b0;
+    	end
+    end
+
     // write data to register
     always @ (*) begin
     	if (rst == `Disable && wb_we_i == `Enable && wb_waddr_i != 5'h0) begin

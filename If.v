@@ -46,6 +46,7 @@ module If(
 	//output to if_id
 	output reg[`InstAddrBus] pc_o,
 	output reg flag_o,
+	output reg first_o,
 	output reg[`InstBus] inst_o
     );
 	
@@ -64,6 +65,7 @@ module If(
 			addr_to_memctrl = `ZeroWord;
 			stallreq_from_if = 1'b1;
 			flag_o = 1'b0;
+			first_o = 1'b0;
 			pc_o = `ZeroWord;
 			inst_o = `ZeroWord;
 			sent_to_memctrl = 3'b000;
@@ -75,7 +77,8 @@ module If(
 				addr_to_memctrl = pc_i;
 				stallreq_from_if = 1'b1;
 				flag_o = 1'b0;	
-				pc_o = `ZeroWord;
+				first_o = 1'b0;
+				pc_o = pc_i;
 				inst_o = `ZeroWord;
 				sent_to_memctrl = 3'b001;
     			received_from_memctrl = 2'b00;
@@ -84,24 +87,28 @@ module If(
 			end else begin	
 				if (sent_to_memctrl == 3'b001) begin
 					r_to_memctrl = 1'b1;
+					pc_o = pc_i;
 					addr_to_memctrl = pc_i + 32'b1;
 					stallreq_from_if = 1'b1;
 					sent_to_memctrl = 3'b010;
     				flag_to_ctrl = 1'b1;
 				end else if (sent_to_memctrl == 3'b010) begin
 					r_to_memctrl = 1'b1;
+					pc_o = pc_i;
 					addr_to_memctrl = pc_i + 32'b10;
 					stallreq_from_if = 1'b1;
 					sent_to_memctrl = 3'b011;
     				flag_to_ctrl = 1'b1;
 				end else if (sent_to_memctrl == 3'b011) begin
 					r_to_memctrl = 1'b1;
+					pc_o = pc_i;
 					addr_to_memctrl = pc_i + 32'b11;
 					stallreq_from_if = 1'b1;
 					sent_to_memctrl = 3'b100;
     				flag_to_ctrl = 1'b1;
 				end else begin
 					r_to_memctrl = 1'b0;
+					pc_o = pc_i;
 					addr_to_memctrl = `ZeroWord;
     				flag_to_ctrl = 1'b1;
 				end
@@ -109,30 +116,36 @@ module If(
 				if (r_from_memctrl == 1'b1) begin
 					if (received_from_memctrl == 3'b000) begin
 						flag_o = 1'b0;
+						first_o = 1'b0;
 						pc_o = `ZeroWord;		
 						inst_o = data_from_memctrl;
 						stallreq_from_if = 1'b1;
 						received_from_memctrl = 3'b001;
 					end else if (received_from_memctrl == 3'b001) begin
 						flag_o = 1'b0;	
+						first_o = 1'b0;
 						pc_o = `ZeroWord;		
 						inst_o = {{16{1'b0}}, data_from_memctrl, inst_o[7: 0]};
 						stallreq_from_if = 1'b1;
 						received_from_memctrl = 3'b010;
 					end else if (received_from_memctrl == 3'b010) begin
 						flag_o = 1'b0;	
+						first_o = 1'b0;
 						pc_o = `ZeroWord;		
 						inst_o = {{8{1'b0}}, data_from_memctrl, inst_o[15: 0]};
 						stallreq_from_if = 1'b1;
 						received_from_memctrl = 3'b011;
 					end else if(received_from_memctrl == 3'b011) begin
 						flag_o = 1'b1;	
+						first_o = 1'b1;
 						pc_o = pc_i;
 						inst_o = {data_from_memctrl, inst_o[23: 0]};
 						stallreq_from_if = 1'b0;
 						received_from_memctrl = 3'b100;
     					flag_to_ctrl = 1'b0;
 					end else begin
+						flag_o = 1'b0;
+						first_o = 1'b0;
 						pc_o = `ZeroWord;
 						inst_o = `ZeroWord;
 						stallreq_from_if = 1'b0;
@@ -140,6 +153,7 @@ module If(
 					end
 				end else begin
 					flag_o = 1'b0;
+					first_o = 1'b0;
 					pc_o = `ZeroWord;		
 				end
 			end

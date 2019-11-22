@@ -16,9 +16,9 @@ riscv_top #(.SIM(1)) top(
 );
 
 initial begin
-  clk=0;
+  clk=1;
   rst=1;
-  repeat(50) #1 clk=!clk;
+  repeat(1) #50 clk=!clk;
   rst=0; 
   forever #50 clk=!clk;
 
