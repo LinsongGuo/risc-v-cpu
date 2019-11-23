@@ -14,15 +14,28 @@ riscv_top #(.SIM(1)) top(
     .Rx(),
     .led()
 );
-
+/*
 initial begin
-  clk=1;
+  clk=0;
   rst=1;
-  repeat(1) #50 clk=!clk;
+  repeat(3) #50 clk=!clk;
   rst=0; 
   forever #50 clk=!clk;
 
   $finish;
+end
+*/
+
+
+initial begin
+  clk=0;
+  rst=1;
+  repeat(4) #10 clk=!clk;
+  rst=0; 
+  forever #10 clk=!clk;
+
+  $finish;
+
 end
 
 endmodule

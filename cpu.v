@@ -28,15 +28,12 @@ module cpu(
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
     //stallctrl
-    wire stallreq_from_pcreg;
-    wire stallreq_from_if;
     wire stallreq_from_id;
     wire stallreq_from_mem;
     wire[`StallBus] stall;
 
     //memctrl -- if 
     wire flag_from_if_to_ctrl;
-    wire r_from_if_to_ctrl;
     wire[`InstAddrBus] addr_from_if_to_ctrl;
     wire r_from_ctrl_to_if;
     wire[`ByteBus] data_from_ctrl_to_if;
@@ -55,18 +52,13 @@ module cpu(
     wire[`DataAddrBus] addr_from_ctrl_to_ram;
     wire[`ByteBus] data_from_ctrl_to_ram;
 
-    //pc_reg -- if
-    wire flag_from_pcreg_to_if;
-    wire[`InstAddrBus] pc_from_pcreg_to_if;
-    
     //if -- if_id
     wire[`InstAddrBus] pc_from_if_to_ifid;
     wire flag_from_if_to_ifid;
-    wire first_from_if_to_ifid;
     wire[`InstBus] inst_from_if_to_ifid; 
 
     //if_id -- id
-    wire first_from_ifid_to_id;
+    wire flag_from_ifid_to_id;
     wire[`InstAddrBus] pc_from_ifid_to_id;
     wire[`InstBus] inst_from_ifid_to_id;
 
@@ -131,35 +123,21 @@ module cpu(
     wire[`RegAddrBus] waddr_from_memwb_to_rf;
     wire[`RegBus] wdata_from_memwb_to_rf;
   
-    pc_reg pc_reg0(
-        .clk(clk_in), .rst(rst_in),
-
-        .stall(stall),
-        
-        .pc_o(pc_from_pcreg_to_if),
-
-        .stallreq_from_pcreg(stallreq_from_pcreg)
-    );
     
     If if0(
         .clk(clk_in), .rst(rst_in),
         
-        .pc_i(pc_from_pcreg_to_if),
-        
         .r_from_memctrl(r_from_ctrl_to_if),
         .data_from_memctrl(data_from_ctrl_to_if),
 
-        .flag_to_ctrl(flag_from_if_to_ctrl),
-        .r_to_memctrl(r_from_if_to_ctrl),
+        .flag_to_memctrl(flag_from_if_to_ctrl),
         .addr_to_memctrl(addr_from_if_to_ctrl),
 
         .stall(stall),
-
-        .stallreq_from_if(stallreq_from_if),
+        .mem_rw_to_memctrl(rw_from_mem_to_ctrl),
 
         .pc_o(pc_from_if_to_ifid),
         .flag_o(flag_from_if_to_ifid),
-        .first_o(first_from_if_to_ifid),
         .inst_o(inst_from_if_to_ifid)
     );
 
@@ -167,13 +145,12 @@ module cpu(
         .clk(clk_in), .rst(rst_in),
 
         .if_flag(flag_from_if_to_ifid),
-        .if_first(flag_from_if_to_ifid),
         .if_pc(pc_from_if_to_ifid),
         .if_inst(inst_from_if_to_ifid),
 
         .stall(stall),
-
-        .id_first(first_from_ifid_to_id),
+        
+        .id_flag(flag_from_ifid_to_id),
         .id_pc(pc_from_ifid_to_id),
         .id_inst(inst_from_ifid_to_id)
     );
@@ -181,7 +158,7 @@ module cpu(
     id id0(
         .rst(rst_in),
 
-        .first_i(first_from_ifid_to_id),
+        .flag_i(flag_from_ifid_to_id),
         .pc_i(pc_from_ifid_to_id),
         .inst_i(inst_from_ifid_to_id),
 
@@ -350,11 +327,9 @@ module cpu(
     stallctrl stallctrl(
         .rst(rst_in),
 
-        .stallreq_from_pcreg(stallreq_from_pcreg),
-        .stallreq_from_if(stallreq_from_if),
         .stallreq_from_id(stallreq_from_id),
         .stallreq_from_mem(stallreq_from_mem),
-
+        
         .stall(stall)
     );
 
@@ -362,7 +337,6 @@ module cpu(
         .rst(rst_in),
 
         .flag_from_if(flag_from_if_to_ctrl),
-        .r_from_if(r_from_if_to_ctrl),
         .addr_from_if(addr_from_if_to_ctrl),
 
         .r_to_if(r_from_ctrl_to_if),

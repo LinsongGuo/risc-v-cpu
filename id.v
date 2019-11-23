@@ -25,7 +25,7 @@ module id(
 	input wire rst,
 	
 	//input from if_id
-	input wire first_i,
+	input wire flag_i,
 	input wire[`InstAddrBus] pc_i,
 	input wire[`InstBus] inst_i,
 	
@@ -70,7 +70,7 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        end else if (first_i == 1'b1) begin
+        end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
 	        pc_o = pc_i;

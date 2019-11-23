@@ -23,28 +23,18 @@
 module stallctrl(
 	input wire rst,
 
-	input wire stallreq_from_pcreg,
-	input wire stallreq_from_if,
 	input wire stallreq_from_id,
 	input wire stallreq_from_mem,
 	
 	output reg[`StallBus] stall
     );
-	
-	initial begin
-		stall = 5'b00001;
-	end
 
 	always @ (*) begin 
 		if (rst == `Enable) begin
-			stall = 5'b00001;
+			stall = 5'b00000;
 		end else begin
 			if (stallreq_from_mem == `Stop) begin
-				stall = 5'b11110;
-			else if (stallreq_from_id == `Stop) begin
-				stall = 5'b00011;
-			end else if (stallreq_from_if == `Stop || stallreq_from_pcreg == `Stop) begin
-				stall = 5'b00001;
+				stall = 5'b01111;
 			end else begin
 				stall = 5'b00000;
 			end
