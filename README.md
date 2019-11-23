@@ -1,0 +1,1 @@
+A 32-bit RISC-V CPU with 5-stage pipeline implemented in Verilog HDL.
