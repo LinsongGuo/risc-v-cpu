@@ -33,8 +33,7 @@ module mem(
     input wire[`RegBus] alu_i,
     input wire cond_i,
     input wire[`RegBus] rdata2_i,
-    input wire flag_i,
-
+    
     //output to mem_wb
     output reg[`OpcodeBus] opcode_o,
     output reg[`OptBus] opt_o,
@@ -93,7 +92,7 @@ module mem(
             end else begin
                 opcode_o = opt_i;
                 opt_o = opt_i;
-                we_o = `Disable;
+                we_o = we_i;
                 waddr_o = waddr_i;
                 wdata_o = alu_i;
                 flag_to_memctrl = 1'b0;
@@ -128,67 +127,115 @@ module mem(
                 opcode_o = `OpcodeNOP;
                 opt_o = `OptNOP;
                 we_o = `Disable;
-                waddr_o = waddr_i;
+                waddr_o = 5'h0;
                 wdata_o = `ZeroWord;
-                flag_to_memctrl = 1'b0;
-                rw_to_memctrl = 2'b10;
                 case(opt_i)
                     `OptSB:
                         begin
-                            opcode_o = opcode_i;
-                            opt_o = opt_i;
-                            addr_to_memctrl = alu_i;
-                            data_to_memctrl = rdata2_i[7: 0];
-                            stallreq_from_mem = 1'b0;
-                            stallreq_from_mem_to_if = 1'b0;
-                            sent_to_memctrl = 3'b000; 
+                            if (sent_to_memctrl == 3'b000) begin
+                                rw_to_memctrl = 2'b10; 
+                                flag_to_memctrl = 1'b0;               
+                                addr_to_memctrl = alu_i;
+                                data_to_memctrl = rdata2_i[7: 0];
+                                stallreq_from_mem = 1'b1;
+                                sent_to_memctrl = 3'b001;      
+                            end else begin
+                                rw_to_memctrl = 2'b00;
+                                flag_to_memctrl = 1'b1;
+                            end 
+
+                            if (r_from_memctrl == 1'b1) begin
+                                flag_to_memctrl = 1'b0;
+                                stallreq_from_mem = 1'b0;
+                                sent_to_memctrl = 3'b000;
+                                received_from_memctrl = 3'b001;
+                            end
                         end
                     `OptSH:
                         begin
                             if (sent_to_memctrl == 3'b000) begin
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b0;               
                                 addr_to_memctrl = alu_i;
                                 data_to_memctrl = rdata2_i[7: 0];
                                 stallreq_from_mem = 1'b1;   
-                                stallreq_from_mem_to_if = 1'b1;
                                 sent_to_memctrl = 3'b001;    
                             end else if (sent_to_memctrl == 3'b001) begin
-                                opcode_o = opcode_i;
-                                opt_o = opt_i;
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b1;               
                                 addr_to_memctrl = alu_i + 32'b1;
                                 data_to_memctrl = rdata2_i[15: 8];
                                 stallreq_from_mem = 1'b0;
-                                stallreq_from_mem_to_if = 1'b0;
-                                sent_to_memctrl = 3'b000;
+                                sent_to_memctrl = 3'b010;
+                            end else begin
+                                rw_to_memctrl = 2'b00;
+                                flag_to_memctrl = 1'b1;
+                            end
+
+                            if (r_from_memctrl == 1'b1) begin
+                                if (received_from_memctrl == 3'b000) begin
+                                    flag_to_memctrl = 1'b1;
+                                    received_from_memctrl = 3'b001;          
+                                end else if (received_from_memctrl == 3'b001) begin
+                                    flag_to_memctrl = 1'b0;
+                                    stallreq_from_mem = 1'b0;
+                                    sent_to_memctrl = 3'b000;
+                                    received_from_memctrl = 3'b010;
+                                end 
                             end
                         end
                     `OptSW:
                         begin
                             if (sent_to_memctrl == 3'b000) begin
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b0;
                                 addr_to_memctrl = alu_i;
                                 data_to_memctrl = rdata2_i[7: 0];
                                 stallreq_from_mem = 1'b1;   
-                                stallreq_from_mem_to_if = 1'b1;
                                 sent_to_memctrl = 3'b001;
                             end else if (sent_to_memctrl == 3'b001) begin
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b1;
                                 addr_to_memctrl = alu_i + 32'b1;
                                 data_to_memctrl = rdata2_i[15: 8];
                                 stallreq_from_mem = 1'b1;
-                                stallreq_from_mem_to_if = 1'b1;
                                 sent_to_memctrl = 3'b010; 
                             end else if (sent_to_memctrl == 3'b010) begin
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b1;
                                 addr_to_memctrl = alu_i + 32'b10;
                                 data_to_memctrl = rdata2_i[23: 16];
                                 stallreq_from_mem = 1'b1;
-                                stallreq_from_mem_to_if = 1'b1;
                                 sent_to_memctrl = 3'b011;            
-                            end else begin
-                                opcode_o = opcode_i;
-                                opt_o = opt_i;
+                            end else if (sent_to_memctrl == 3'b011) begin
+                                rw_to_memctrl = 2'b10;
+                                flag_to_memctrl = 1'b1;
                                 addr_to_memctrl = alu_i + 32'b11;
                                 data_to_memctrl = rdata2_i[31: 24];
                                 stallreq_from_mem = 1'b0;   
                                 stallreq_from_mem_to_if = 1'b0;
                                 sent_to_memctrl = 3'b000; 
+                            end else begin
+                                rw_to_memctrl = 2'b00;
+                                flag_to_memctrl = 1'b1;
+                            end
+
+                            if (r_from_memctrl == 1'b1) begin
+                               if (received_from_memctrl == 3'b000) begin
+                                   flag_to_memctrl = 1'b1;
+                                   received_from_memctrl = 3'b001;          
+                               end else if (received_from_memctrl == 3'b001) begin
+                                   flag_to_memctrl = 1'b1;
+                                   received_from_memctrl = 3'b010;
+                               end else if (received_from_memctrl == 3'b010) begin
+                                   flag_to_memctrl = 1'b1;
+                                   received_from_memctrl = 3'b011;        
+                               end else begin
+                                   flag_to_memctrl = 1'b0;
+                                   stallreq_from_mem = 1'b0;
+                                   sent_to_memctrl = 3'b000;
+                                   received_from_memctrl = 3'b100;            
+                               end 
                             end
                         end
                 endcase       
@@ -391,6 +438,7 @@ module mem(
                                    we_o = we_i;
                                    wdata_o = {data_from_memctrl, wdata_o[23:0]};
                                    stallreq_from_mem = 1'b0;
+                                   sent_to_memctrl = 3'b000;
                                    received_from_memctrl = 3'b100;            
                                end 
                             end

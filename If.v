@@ -109,6 +109,10 @@ module If(
 			end else begin
 				flag_o = 1'b0;
 			end			
+
+			if (sent_to_memctrl == received_from_memctrl) begin
+				flag_to_memctrl = 1'b0;
+			end
 		end
 	end
 endmodule

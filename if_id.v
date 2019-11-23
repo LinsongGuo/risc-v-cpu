@@ -43,8 +43,8 @@ module if_id(
                 id_pc <= `ZeroWord;
     			id_inst <= `ZeroWord;
             end else if (stall[1] == `NoStop && if_flag == 1'b1) begin
-                id_flag <= id_flag;
-                id_pc <= if_pc;
+                id_flag <= if_flag;
+                id_pc <= if_pc - 32'b11;
     			id_inst <= if_inst;
     		end else begin
                 id_flag <= `Disable;

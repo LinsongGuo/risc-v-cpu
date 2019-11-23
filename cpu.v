@@ -109,8 +109,7 @@ module cpu(
     wire[`RegBus] alu_from_exmem_to_mem;
     wire cond_from_exmem_to_mem;
     wire[`RegBus] rdata2_from_exmem_to_mem;
-    wire flag_from_exmem_to_mem;
-
+    
     //mem -- mem_wb / regfile(forwarding)
     wire[`OpcodeBus] opcode_from_mem;
     wire[`OptBus] opt_from_mem_to_memwb;
@@ -249,8 +248,7 @@ module cpu(
         .mem_waddr(waddr_from_exmem_to_mem),
         .mem_alu(alu_from_exmem_to_mem),
         .mem_cond(cond_from_exmem_to_mem),
-        .mem_rdata2(rdata2_from_exmem_to_mem),
-        .mem_flag(flag_from_exmem_to_mem)
+        .mem_rdata2(rdata2_from_exmem_to_mem)
     );
 
     mem mem0(
@@ -263,8 +261,7 @@ module cpu(
         .alu_i(alu_from_exmem_to_mem),
         .cond_i(cond_from_exmem_to_mem),
         .rdata2_i(rdata2_from_exmem_to_mem),
-        .flag_i(flag_from_exmem_to_mem),
-
+        
         .opcode_o(opcode_from_mem),
         .opt_o(opt_from_mem_to_memwb),
         .we_o(we_from_mem),
