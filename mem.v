@@ -75,7 +75,7 @@ module mem(
             sent_to_memctrl = 3'b000;
             received_from_memctrl = 3'b000;
         end else begin
-            if(opcode_i == `OpcodeStore || opcode_i == `OpcodeStore) begin
+            if(opcode_i == `OpcodeStore || opcode_i == `OpcodeLoad) begin
                 opcode_o = `OpcodeNOP;
                 opt_o = `OptNOP;
                 we_o = `Disable;
