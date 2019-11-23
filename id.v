@@ -48,7 +48,11 @@ module id(
 	output reg we_o,
 	output reg[`RegAddrBus] waddr_o,
 	output reg[`DataBus] imm_o,
-	output reg[`ShamtBus] shamt_o
+	output reg[`ShamtBus] shamt_o,
+
+	//output to if
+	output reg branch_to_if,
+	output reg[`InstAddrBus] jump_addr_to_if
     );
     
 	wire[`OpcodeBus] opcode = inst_i[`OpcodeBus];
@@ -70,6 +74,8 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
+        	branch_to_if = `Disable;
+        	jump_addr_to_if = `ZeroWord;
         end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
@@ -80,6 +86,8 @@ module id(
 	        waddr_o = inst_i[11: 7];
 	        imm_o = `ZeroWord;
 	        shamt_o = 5'b0;
+	        branch_to_if = `Disable;
+	        jump_addr_to_if = `ZeroWord;
 	        case(opcode)
 	            `OpcodeLUI:
 	                begin
@@ -104,30 +112,79 @@ module id(
 	            		we_o = `Enable;
 	            		re1_o = `Disable;
 	            		re2_o = `Disable;
+	            		branch_to_if = `Enable;
+	            		jump_addr_to_if = pc_i + imm_o;
 	            	end
 	            `OpcodeJALR:
 	            	begin
 	            		opt_o = `OptJALR;
-	            		imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+	            		imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 	       				we_o = `Enable;
 	       				re1_o = `Enable;
 	       				re2_o = `Disable;
+	       				branch_to_if = `Enable;
+	            		jump_addr_to_if = rdata1_i + imm_o;
 	       			end
 	       		`OpcodeBranch:
 	       			begin
-	       				case(funct3)
-					 		3'b000: begin opt_o = `OptBEQ; end
-					 		3'b001: begin opt_o = `OptBNE; end
-					 		3'b100: begin opt_o = `OptBLT; end
-					 		3'b101:	begin opt_o = `OptBGE; end
-					 		3'b110: begin opt_o = `OptBLTU; end
-					 		3'b111: begin opt_o = `OptBGEU; end
-					 		default: begin opt_o = `OptNOP; end
-	        			endcase
-	        			imm_o = {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+	       				imm_o = {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
 	        			we_o = `Disable;
 	        			re1_o = `Enable;
 	        			re2_o = `Enable;
+	       				case(funct3)
+					 		3'b000: 
+					 			begin 
+					 				opt_o = `OptBEQ; 
+					 				if (rdata1_i == rdata2_i) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		3'b001: 
+					 			begin 
+					 				opt_o = `OptBNE;
+					 				if (rdata1_i != rdata2_i) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		3'b100: 
+					 			begin 
+					 				opt_o = `OptBLT;
+					 				if ($signed(rdata1_i) < $signed(rdata2_i)) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		3'b101:	
+					 			begin 
+					 				opt_o = `OptBGE; 
+					 				if ($signed(rdata1_i) >= $signed(rdata2_i)) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		3'b110: 
+					 			begin 
+					 				opt_o = `OptBLTU;
+					 				if (rdata1_i < rdata2_i) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		3'b111: 
+					 			begin 
+					 				opt_o = `OptBGEU;
+					 				if (rdata1_i >= rdata2_i) begin
+					 					branch_to_if = `Enable;
+					 					jump_addr_to_if = pc_i + imm_o;
+					 				end
+					 			end
+					 		default: 
+					 			begin 
+					 				opt_o = `OptNOP; 
+					 			end
+	        			endcase
 	        		end
 	        	`OpcodeLoad:
 	        		begin
@@ -139,7 +196,7 @@ module id(
 				 			3'b101: begin opt_o = `OptLHU; end
 				 			default: begin opt_o = `OptNOP; end
 				 		endcase
-				 		imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 		imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 		we_o = `Enable;
 				 		re1_o = `Enable;
 				 		re2_o = `Disable;
@@ -152,7 +209,7 @@ module id(
 				 			3'b010: begin opt_o = `OptSW; end
 				 			default: begin opt_o = `OptNOP; end
 				 		endcase
-				 		imm_o = {{21{inst_i[31]}}, inst_i[30:25], inst_i[11:7]};
+				 		imm_o = {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]};
 				 		we_o = `Disable;
 				 		re1_o = `Enable;
 				 		re2_o = `Enable;
@@ -163,32 +220,32 @@ module id(
 				 			3'b00: 
 				 				begin 
 				 					opt_o = `OptADDI; 
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end
 				 			3'b010:
 				 				begin
 				 					opt_o = `OptSLTI;
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end
 				 			3'b011:
 				 				begin
 				 					opt_o = `OptSLTIU;
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end		
 				 			3'b100:
 				 				begin
 				 					opt_o = `OptXORI;
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end
 				 			3'b110:
 				 				begin
 				 					opt_o = `OptORI;
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end
 				 			3'b111:
 				 				begin
 				 					opt_o = `OptANDI;
-				 					imm_o = {{21{inst_i[31]}}, inst_i[30:20]};
+				 					imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 				end
 				 			3'b001:
 				 				begin
@@ -313,6 +370,8 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
+        	branch_to_if = `Disable;
+	        jump_addr_to_if = `ZeroWord;
     	end
     end
 	

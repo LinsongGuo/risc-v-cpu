@@ -57,6 +57,10 @@ module cpu(
     wire flag_from_if_to_ifid;
     wire[`InstBus] inst_from_if_to_ifid; 
 
+    //if -- id
+    wire branch_from_id_to_if;
+    wire[`InstAddrBus] jump_addr_from_id_to_if;
+
     //if_id -- id
     wire flag_from_ifid_to_id;
     wire[`InstAddrBus] pc_from_ifid_to_id;
@@ -98,7 +102,6 @@ module cpu(
     wire we_from_ex;
     wire[`RegAddrBus] waddr_from_ex;
     wire[`RegBus] alu_from_ex;
-    wire cond_from_ex_to_exmem;
     wire[`RegBus] rdata2_from_ex_to_exmem;
 
     //ex_mem -- mem
@@ -107,7 +110,6 @@ module cpu(
     wire we_from_exmem_to_mem;
     wire[`RegAddrBus] waddr_from_exmem_to_mem;
     wire[`RegBus] alu_from_exmem_to_mem;
-    wire cond_from_exmem_to_mem;
     wire[`RegBus] rdata2_from_exmem_to_mem;
     
     //mem -- mem_wb / regfile(forwarding)
@@ -126,6 +128,9 @@ module cpu(
     If if0(
         .clk(clk_in), .rst(rst_in),
         
+        .branch_from_id(branch_from_id_to_if),
+        .jump_addr_from_id(jump_addr_from_id_to_if),        
+
         .r_from_memctrl(r_from_ctrl_to_if),
         .data_from_memctrl(data_from_ctrl_to_if),
 
@@ -177,7 +182,10 @@ module cpu(
         .we_o(we_from_id_to_idex),
         .waddr_o(waddr_from_id_to_idex),
         .imm_o(imm_from_id_to_idex),
-        .shamt_o(shamt_from_id_to_idex)
+        .shamt_o(shamt_from_id_to_idex),
+
+        .branch_to_if(branch_from_id_to_if),
+        .jump_addr_to_if(jump_addr_from_id_to_if)
     );
 
     id_ex id_ex0(
@@ -225,7 +233,6 @@ module cpu(
         .we_o(we_from_ex),
         .waddr_o(waddr_from_ex),
         .alu_o(alu_from_ex),
-        .cond_o(cond_from_ex_to_exmem),
         .rdata2_o(rdata2_from_ex_to_exmem)    
     );
 
@@ -237,7 +244,6 @@ module cpu(
         .ex_we(we_from_ex),
         .ex_waddr(waddr_from_ex),
         .ex_alu(alu_from_ex),
-        .ex_cond(cond_from_ex_to_exmem),
         .ex_rdata2(rdata2_from_ex_to_exmem),
 
         .stall(stall),
@@ -247,7 +253,6 @@ module cpu(
         .mem_we(we_from_exmem_to_mem),
         .mem_waddr(waddr_from_exmem_to_mem),
         .mem_alu(alu_from_exmem_to_mem),
-        .mem_cond(cond_from_exmem_to_mem),
         .mem_rdata2(rdata2_from_exmem_to_mem)
     );
 
@@ -259,7 +264,6 @@ module cpu(
         .we_i(we_from_exmem_to_mem),
         .waddr_i(waddr_from_exmem_to_mem),
         .alu_i(alu_from_exmem_to_mem),
-        .cond_i(cond_from_exmem_to_mem),
         .rdata2_i(rdata2_from_exmem_to_mem),
         
         .opcode_o(opcode_from_mem),

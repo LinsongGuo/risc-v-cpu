@@ -31,7 +31,6 @@ module ex_mem(
     input wire ex_we,
     input wire[`RegAddrBus] ex_waddr,
     input wire[`RegBus] ex_alu,
-    input wire ex_cond,
     input wire[`RegBus] ex_rdata2,
     
     input wire[`StallBus] stall,
@@ -42,9 +41,7 @@ module ex_mem(
     output reg mem_we,
     output reg[`RegAddrBus] mem_waddr,
     output reg[`RegBus] mem_alu,
-    output reg mem_cond,
-    output reg[`RegBus] mem_rdata2,
-    output reg mem_flag
+    output reg[`RegBus] mem_rdata2
     );
     
     always @ (posedge clk) begin
@@ -54,9 +51,7 @@ module ex_mem(
             mem_we <= `Disable;
             mem_waddr <= `NOPRegAddr;
             mem_alu <= `ZeroWord;
-            mem_cond <= 1'b0;
             mem_rdata2 <= `ZeroWord; 
-            mem_flag <= 1'b0;
         end else begin   
             if (stall[3] == `NoStop) begin
                 mem_opcode <= ex_opcode;
@@ -64,12 +59,8 @@ module ex_mem(
                 mem_we <= ex_we;
                 mem_waddr <= ex_waddr;
                 mem_alu <= ex_alu;
-                mem_cond <= ex_cond;
                 mem_rdata2 <= ex_rdata2;   
-                mem_flag <= 1'b1; 
-            end else begin
-                mem_flag <= 1'b0;
-            end
+            end 
         end
     end
     

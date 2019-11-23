@@ -31,7 +31,6 @@ module mem(
     input wire we_i,
     input wire[`RegAddrBus] waddr_i,
     input wire[`RegBus] alu_i,
-    input wire cond_i,
     input wire[`RegBus] rdata2_i,
     
     //output to mem_wb
@@ -79,16 +78,7 @@ module mem(
                 opcode_o = `OpcodeNOP;
                 opt_o = `OptNOP;
                 we_o = `Disable;
-                waddr_o = 5'h0;
-                wdata_o = `ZeroWord;
-                flag_to_memctrl = 1'b0;
-                rw_to_memctrl = 2'b00;
-                addr_to_memctrl = `ZeroWord;
-                data_to_memctrl = `ZeroByte;
                 stallreq_from_mem = 1'b1;   
-                stallreq_from_mem_to_if = 1'b0;
-                sent_to_memctrl = 3'b000;
-                received_from_memctrl = 3'b000;
             end else begin
                 opcode_o = opt_i;
                 opt_o = opt_i;
@@ -165,7 +155,7 @@ module mem(
                                 flag_to_memctrl = 1'b1;               
                                 addr_to_memctrl = alu_i + 32'b1;
                                 data_to_memctrl = rdata2_i[15: 8];
-                                stallreq_from_mem = 1'b0;
+                                stallreq_from_mem = 1'b1;
                                 sent_to_memctrl = 3'b010;
                             end else begin
                                 rw_to_memctrl = 2'b00;
@@ -212,9 +202,8 @@ module mem(
                                 flag_to_memctrl = 1'b1;
                                 addr_to_memctrl = alu_i + 32'b11;
                                 data_to_memctrl = rdata2_i[31: 24];
-                                stallreq_from_mem = 1'b0;   
-                                stallreq_from_mem_to_if = 1'b0;
-                                sent_to_memctrl = 3'b000; 
+                                stallreq_from_mem = 1'b1;   
+                                sent_to_memctrl = 3'b100; 
                             end else begin
                                 rw_to_memctrl = 2'b00;
                                 flag_to_memctrl = 1'b1;
@@ -230,7 +219,7 @@ module mem(
                                end else if (received_from_memctrl == 3'b010) begin
                                    flag_to_memctrl = 1'b1;
                                    received_from_memctrl = 3'b011;        
-                               end else begin
+                               end else if (received_from_memctrl == 3'b011) begin
                                    flag_to_memctrl = 1'b0;
                                    stallreq_from_mem = 1'b0;
                                    sent_to_memctrl = 3'b000;
@@ -244,7 +233,6 @@ module mem(
                 opt_o = `OptNOP;
                 we_o = `Disable;
                 waddr_o = waddr_i;
-                wdata_o = `ZeroWord;
                 data_to_memctrl = `ZeroByte;
                 case(opt_i)
 
