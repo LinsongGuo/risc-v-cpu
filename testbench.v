@@ -30,9 +30,9 @@ end
 initial begin
   clk=0;
   rst=1;
-  repeat(4) #10 clk=!clk;
+  repeat(50) #1 clk=!clk;
   rst=0; 
-  forever #10 clk=!clk;
+  forever #1 clk=!clk;
 
   $finish;
 

@@ -357,7 +357,7 @@ module cpu(
         .addr_to_ram(mem_a),
         .data_to_ram(mem_dout)
     );
-/*
+
 always @(posedge clk_in)
   begin
     if (rst_in)
@@ -373,5 +373,5 @@ always @(posedge clk_in)
       
       end
   end
-*/
+
 endmodule

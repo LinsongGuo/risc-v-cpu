@@ -103,5 +103,6 @@ module memctrl(
 			end 
 		end
 	end
+
 endmodule
 
