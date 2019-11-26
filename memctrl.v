@@ -25,21 +25,17 @@ module memctrl(
 	input wire rst,
 
 	//input from if
-	input wire flag_from_if,
 	input wire[`InstAddrBus] addr_from_if,
 
 	//output to if
-	output reg r_to_if,
 	output reg[`ByteBus] data_to_if,
 
 	//input from mem
-	input wire flag_from_mem,
 	input wire[1: 0] rw_from_mem, //01:load, 10:store
 	input wire[`DataAddrBus] addr_from_mem,
 	input wire[`ByteBus] data_from_mem,
 
 	//output to mem
-	output reg r_to_mem,
 	output reg[`ByteBus] data_to_mem,
 
 	//input from ram
@@ -51,43 +47,14 @@ module memctrl(
 	output reg[`ByteBus] data_to_ram
     );
 
-	initial begin
-		r_to_if = 1'b0;
-		data_to_if = `ZeroByte;
-		r_to_mem = 1'b0;
-		data_to_mem = `ZeroByte;
-		rw_to_ram = 1'b0;
-		addr_to_ram = `ZeroWord;
-		data_to_ram = `ZeroByte;
-	end
-
 	always @ (*) begin
 		if (rst == `Enable) begin
-			r_to_if = 1'b0;
 			data_to_if = `ZeroByte;
-			r_to_mem = 1'b0;
 			data_to_mem = `ZeroByte;
 			rw_to_ram = 1'b0;
 			addr_to_ram = `ZeroWord;
 			data_to_ram = `ZeroByte;
 		end else begin
-			if (flag_from_mem == `Enable) begin
-				r_to_if = 1'b0;
-				r_to_mem = 1'b1;
-				data_to_if = `ZeroWord;
-				data_to_mem = data_from_ram;
-			end else if (flag_from_if == `Enable) begin
-				r_to_if = 1'b1;
-				r_to_mem = 1'b0;
-				data_to_mem = `ZeroWord;
-				data_to_if = data_from_ram;
-			end else begin
-				r_to_if = 1'b0;
-				r_to_mem = 1'b0;
-				data_to_if = `ZeroWord;
-				data_to_mem = `ZeroWord;
-			end
-
 			if (rw_from_mem == 2'b01) begin //load
 				rw_to_ram = 1'b0;
 				addr_to_ram = addr_from_mem;
@@ -101,6 +68,9 @@ module memctrl(
 				addr_to_ram = addr_from_if;
 				data_to_ram = `ZeroByte;
 			end 
+
+			data_to_if = data_from_ram;
+			data_to_mem = data_from_ram;
 		end
 	end
 

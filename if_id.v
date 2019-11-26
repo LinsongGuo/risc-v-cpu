@@ -25,36 +25,39 @@ module if_id(
 	input wire clk,
 	input wire rst,
 	
+    //input from stallctrl
+    input wire[`StallBus] stall,
+
+    //input from if
     input wire if_flag,
     input wire[`InstAddrBus] if_pc,
-	input wire[`InstBus] if_inst,
-	
-	input wire[`StallBus] stall,
-
+	input wire[`InstBus] if_inst,	
+    
+    //output to id
     output reg id_flag,
 	output reg[`InstAddrBus] id_pc,
 	output reg[`InstBus] id_inst
     );
 
     always @ (posedge clk) begin
-    	if (rst == `Disable) begin
-    		if (stall[1] == `Stop && stall[2] == `NoStop) begin
-    			id_flag <= `Disable;
+    	if (rst == `Enable) begin
+            id_flag <= `Disable;
+            id_pc <= `ZeroWord;
+            id_inst <= `ZeroWord;
+        end else begin
+            if (stall[1] == `Stop && stall[2] == `NoStop) begin
+        		id_flag <= `Disable;
                 id_pc <= `ZeroWord;
-    			id_inst <= `ZeroWord;
+        		id_inst <= `ZeroWord;
             end else if (stall[1] == `NoStop && if_flag == 1'b1) begin
                 id_flag <= if_flag;
-                id_pc <= if_pc - 32'b11;
-    			id_inst <= if_inst;
-    		end else begin
+                id_pc <= if_pc - 32'b100;
+        		id_inst <= if_inst;
+        	end else begin
                 id_flag <= `Disable;
                 id_pc <= `ZeroWord;
                 id_inst <= `ZeroWord;
             end
-    	end else begin
-            id_flag <= `Disable;
-    		id_pc <= `ZeroWord;
-    		id_inst <= `ZeroWord;
-		end
+    	end
 	end
 endmodule

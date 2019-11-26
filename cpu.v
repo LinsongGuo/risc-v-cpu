@@ -33,17 +33,13 @@ module cpu(
     wire[`StallBus] stall;
 
     //memctrl -- if 
-    wire flag_from_if_to_ctrl;
     wire[`InstAddrBus] addr_from_if_to_ctrl;
-    wire r_from_ctrl_to_if;
     wire[`ByteBus] data_from_ctrl_to_if;
 
     //memctrl -- mem
-    wire flag_from_mem_to_ctrl;
     wire[1: 0] rw_from_mem_to_ctrl; //01:load, 10:store
     wire[`DataAddrBus] addr_from_mem_to_ctrl;
     wire[`ByteBus] data_from_mem_to_ctrl;
-    wire r_from_ctrl_to_mem;
     wire[`ByteBus] data_from_ctrl_to_mem;
 
     //memctrl -- ram
@@ -131,15 +127,12 @@ module cpu(
         .branch_from_id(branch_from_id_to_if),
         .jump_addr_from_id(jump_addr_from_id_to_if),        
 
-        .r_from_memctrl(r_from_ctrl_to_if),
         .data_from_memctrl(data_from_ctrl_to_if),
 
-        .flag_to_memctrl(flag_from_if_to_ctrl),
         .addr_to_memctrl(addr_from_if_to_ctrl),
 
         .stall(stall),
-        .mem_rw_to_memctrl(rw_from_mem_to_ctrl),
-
+        
         .pc_o(pc_from_if_to_ifid),
         .flag_o(flag_from_if_to_ifid),
         .inst_o(inst_from_if_to_ifid)
@@ -272,10 +265,8 @@ module cpu(
         .waddr_o(waddr_from_mem),
         .wdata_o(wdata_from_mem),
 
-        .r_from_memctrl(r_from_ctrl_to_mem),
         .data_from_memctrl(data_from_ctrl_to_mem),
 
-        .flag_to_memctrl(flag_from_mem_to_ctrl),
         .rw_to_memctrl(rw_from_mem_to_ctrl),
         .addr_to_memctrl(addr_from_mem_to_ctrl),
         .data_to_memctrl(data_from_mem_to_ctrl),
@@ -337,18 +328,14 @@ module cpu(
     memctrl memctrl(
         .rst(rst_in),
 
-        .flag_from_if(flag_from_if_to_ctrl),
         .addr_from_if(addr_from_if_to_ctrl),
 
-        .r_to_if(r_from_ctrl_to_if),
         .data_to_if(data_from_ctrl_to_if),
 
-        .flag_from_mem(flag_from_mem_to_ctrl),
         .rw_from_mem(rw_from_mem_to_ctrl),
         .addr_from_mem(addr_from_mem_to_ctrl),
         .data_from_mem(data_from_mem_to_ctrl),
 
-        .r_to_mem(r_from_ctrl_to_mem),
         .data_to_mem(data_from_ctrl_to_mem),
 
         .data_from_ram(mem_din),
@@ -357,7 +344,7 @@ module cpu(
         .addr_to_ram(mem_a),
         .data_to_ram(mem_dout)
     );
-
+/*
 always @(posedge clk_in)
   begin
     if (rst_in)
@@ -373,5 +360,5 @@ always @(posedge clk_in)
       
       end
   end
-
+*/
 endmodule
