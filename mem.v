@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -198,7 +197,7 @@ module mem(
                                 we_o = we_i;
                                 waddr_o = waddr_i;
                                 rw_to_memctrl = 2'b00;
-                                wdata_o = {{24{data_from_memctrl[7]}}, wdata_o[7: 0]};
+                                wdata_o = {{24{data_from_memctrl[7]}}, data_from_memctrl[7: 0]};
                                 stallreq_from_mem = 1'b0;
                                 mem_state = 3'b000;
                             end 
@@ -219,7 +218,7 @@ module mem(
                                 we_o = we_i;
                                 waddr_o = waddr_i;
                                 rw_to_memctrl = 2'b00;
-                                wdata_o = {{24{1'b0}}, wdata_o[7: 0]};
+                                wdata_o = {{24{1'b0}}, data_from_memctrl[7: 0]};
                                 stallreq_from_mem = 1'b0;
                                 mem_state = 3'b000;
                             end

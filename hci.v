@@ -210,7 +210,7 @@ always @*
       end
   end
 
-always @*
+always @ *
   begin
     // Setup default FF updates.
     d_state        = q_state;
