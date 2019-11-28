@@ -5,12 +5,12 @@
 
 `define ByteBus 7:0
 `define ShamtBus 4:0
+
 `define DataBus 31:0
 `define DataAddrBus 31:0
 
 `define InstBus 31:0
 `define InstAddrBus 31:0
-`define InvalidInst 32'h10000000
 
 `define ByteShamt 5'b00111
 `define ZeroByte 8'b00000000

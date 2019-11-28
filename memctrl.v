@@ -48,8 +48,6 @@ module memctrl(
 
 	always @ (*) begin
 		if (rst == `Enable) begin
-			data_to_if = `ZeroByte;
-			data_to_mem = `ZeroByte;
 			rw_to_ram = 1'b0;
 			addr_to_ram = `ZeroWord;
 			data_to_ram = `ZeroByte;
@@ -66,8 +64,15 @@ module memctrl(
 				rw_to_ram = 1'b0;
 				addr_to_ram = addr_from_if;
 				data_to_ram = `ZeroByte;
-			end 
+			end 			
+		end
+	end
 
+	always @ (*) begin
+		if (rst == `Enable) begin
+			data_to_if = `ZeroByte;
+			data_to_mem = `ZeroByte;
+		end else begin	
 			data_to_if = data_from_ram;
 			data_to_mem = data_from_ram;
 		end

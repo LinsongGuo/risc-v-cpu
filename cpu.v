@@ -48,6 +48,15 @@ module cpu(
     wire[`DataAddrBus] addr_from_ctrl_to_ram;
     wire[`ByteBus] data_from_ctrl_to_ram;
 
+    //icache -- if
+    wire write_from_if_to_icache;
+    wire[`InstAddrBus] write_addr_from_if_to_icache;
+    wire[`InstBus] write_inst_from_if_to_icache;
+    wire read_from_if_to_icache;
+    wire[`InstAddrBus] read_addr_from_if_to_icache;
+    wire read_hit_from_icache_to_if;
+    wire[`InstBus] read_inst_from_icache_to_if;
+
     //if -- if_id
     wire[`InstAddrBus] pc_from_if_to_ifid;
     wire flag_from_if_to_ifid;
@@ -120,10 +129,33 @@ module cpu(
     wire[`RegAddrBus] waddr_from_memwb_to_rf;
     wire[`RegBus] wdata_from_memwb_to_rf;
   
-    
+    icache icache0(
+        .rst(rst_in),
+
+        .read_i(read_from_if_to_icache),
+        .read_addr_i(read_addr_from_if_to_icache),
+
+        .write_i(write_from_if_to_icache),
+        .write_addr_i(write_addr_from_if_to_icache),
+        .write_inst_i(write_inst_from_if_to_icache),
+
+        .read_hit_o(read_hit_from_icache_to_if),
+        .read_inst_o(read_inst_from_icache_to_if)
+    );
+
     If if0(
         .clk(clk_in), .rst(rst_in),
         
+        .read_hit_i(read_hit_from_icache_to_if),
+        .read_inst_i(read_inst_from_icache_to_if),
+
+
+        .read_o(read_from_if_to_icache),
+        .read_addr_o(read_addr_from_if_to_icache),
+        .write_o(write_from_if_to_icache),
+        .write_addr_o(write_addr_from_if_to_icache),
+        .write_inst_o(write_inst_from_if_to_icache),
+
         .branch_from_id(branch_from_id_to_if),
         .jump_addr_from_id(jump_addr_from_id_to_if),        
 
