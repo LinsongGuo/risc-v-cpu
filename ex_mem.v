@@ -59,7 +59,7 @@ module ex_mem(
                 mem_waddr <= ex_waddr;
                 mem_alu <= ex_alu;
                 mem_rdata2 <= ex_rdata2;   
-            end 
+            end
         end
     end
     

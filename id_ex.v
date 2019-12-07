@@ -26,6 +26,7 @@ module id_ex(
     
     //input from id
     input wire[`InstAddrBus] id_pc,
+    input wire[`InstBus] id_inst,
     input wire[`OpcodeBus] id_opcode,
     input wire[`OptBus] id_opt,
     input wire[`RegBus] id_rdata1,
@@ -35,7 +36,11 @@ module id_ex(
     input wire[`DataBus] id_imm,
     input wire[`ShamtBus] id_shamt,
     
+    //input from stallctrl
     input wire[`StallBus] stall,
+
+    //input from ex
+    input wire branch_from_ex,
 
     //output to ex
     output reg[`InstAddrBus] ex_pc,
@@ -73,15 +78,27 @@ module id_ex(
                 ex_imm <= `ZeroWord;
                 ex_shamt <= `NOPShamt;    
             end else if (stall[2] == `NoStop) begin
-                ex_pc <= id_pc;
-                ex_opcode <= id_opcode;
-                ex_opt <= id_opt;
-                ex_rdata1 <= id_rdata1;
-                ex_rdata2 <= id_rdata2;
-                ex_we <= id_we;
-                ex_waddr <= id_waddr;
-                ex_imm <= id_imm;
-                ex_shamt <= id_shamt;
+                if (branch_from_ex == 1'b1) begin
+                    ex_pc <= `ZeroWord;
+                    ex_opcode <= `OpcodeNOP;
+                    ex_opt <= `OptNOP;
+                    ex_rdata1 <= `ZeroWord;
+                    ex_rdata2 <= `ZeroWord;
+                    ex_we <= `Disable;
+                    ex_waddr <= `NOPRegAddr;
+                    ex_imm <= `ZeroWord;
+                    ex_shamt <= 5'b0;
+                end else begin
+                    ex_pc <= id_pc;
+                    ex_opcode <= id_opcode;
+                    ex_opt <= id_opt;
+                    ex_rdata1 <= id_rdata1;
+                    ex_rdata2 <= id_rdata2;
+                    ex_we <= id_we;
+                    ex_waddr <= id_waddr;
+                    ex_imm <= id_imm;
+                    ex_shamt <= id_shamt;   
+                end
             end
         end
     end

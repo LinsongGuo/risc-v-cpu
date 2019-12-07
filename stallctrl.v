@@ -34,6 +34,8 @@ module stallctrl(
 		end else begin
 			if (stallreq_from_mem == `Stop) begin
 				stall = 5'b01111;
+			end else if (stallreq_from_id == `Stop) begin
+				stall = 5'b00011;
 			end else begin
 				stall = 5'b00000;
 			end

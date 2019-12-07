@@ -40,7 +40,11 @@ module ex(
     output reg we_o,
     output reg[`RegAddrBus] waddr_o,
     output reg[`RegBus] alu_o,
-    output reg[`RegBus] rdata2_o
+    output reg[`RegBus] rdata2_o,
+
+    //output
+    output reg branch_o,
+    output reg[`InstAddrBus] jump_addr_o
     );
     
     
@@ -51,6 +55,7 @@ module ex(
         waddr_o = waddr_i;
         alu_o = `ZeroWord;
         rdata2_o = rdata2_i;
+        branch_o = 1'b0;
         if (rst == `Disable) begin
             case(opt_i)
                 `OptLUI:
@@ -63,44 +68,58 @@ module ex(
                     end
                 `OptJAL:
                     begin
-                        alu_o = pc_i + 4;
-                        
+                        alu_o = pc_i + 4; 
+                        branch_o = 1'b1;
+                        jump_addr_o = $signed(pc_i) + $signed(imm_i);
                     end
                 `OptJALR:
                     begin
-                       alu_o = pc_i + 4; 
+                        alu_o = pc_i + 4;
+                        branch_o = 1'b1;
+                        jump_addr_o = $signed(rdata1_i) + $signed(imm_i); 
                     end
-                    /*
                 `OptBEQ:
                     begin
-                        cond_o = (rdata1_i == rdata2_i);
-                        //pc_o = $signed(pc_i) + $signed(imm_i);
+                        if (rdata1_i == rdata2_i) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end
                     end
                 `OptBNE:
                     begin
-                        cond_o = (rdata1_i != rdata2_i);
-                        //pc_o = $signed(pc_i) + $signed(imm_i);
+                        if (rdata1_i != rdata2_i) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end
                     end
                 `OptBLT:
                     begin
-                        cond_o = $signed(rdata1_i) < $signed(rdata2_i);
-                        //pc_o = $signed(pc_i) + $signed(imm_i); 
+                        if ($signed(rdata1_i) < $signed(rdata2_i)) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end 
                     end
                 `OptBGE:
                     begin
-                        cond_o = $signed(rdata1_i) >= $signed(rdata2_i);
-                        //pc_o = $signed(pc_i) + $signed(imm_i);
+                        if ($signed(rdata1_i) >= $signed(rdata2_i)) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end 
                     end
                 `OptBLTU:
                     begin
-                        cond_o = rdata1_i < rdata2_i;
-                        //pc_o = $signed(pc_i) + $signed(imm_i);
+                        if (rdata1_i < rdata2_i) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end 
                     end
                 `OptBGEU:
                     begin
-                        cond_o = rdata1_i >= rdata2_i;
-                        //pc_o = $signed(pc_i) + $signed(imm_i); 
-                    end*/
+                        if (rdata1_i >= rdata2_i) begin
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
+                        end  
+                    end
                 `OptLB:
                     begin
                         alu_o = $signed(rdata1_i) + $signed(imm_i);

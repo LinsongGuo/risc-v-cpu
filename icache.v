@@ -59,12 +59,13 @@ module icache(
 			cache_data[i] = 32'b0;
 		end
 	end
-	/*
+/*
 	always @ (*) begin
 		read_hit_o = 1'b0;
 		read_inst_o = `ZeroWord;
 	end
 */
+
 	always @ (*) begin
 		if (rst == `Disable && write_i == 1'b1) begin
 			cache_valid[write_index_i] = 1'b1;
@@ -93,4 +94,5 @@ module icache(
 			read_inst_o = `ZeroWord;
 		end
 	end
+
 endmodule

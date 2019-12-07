@@ -57,14 +57,14 @@ module cpu(
     wire read_hit_from_icache_to_if;
     wire[`InstBus] read_inst_from_icache_to_if;
 
+    //branch 
+    wire branch_from_ex;
+    wire [`InstAddrBus]jump_addr_from_ex;
+
     //if -- if_id
     wire[`InstAddrBus] pc_from_if_to_ifid;
     wire flag_from_if_to_ifid;
-    wire[`InstBus] inst_from_if_to_ifid; 
-
-    //if -- id
-    wire branch_from_id_to_if;
-    wire[`InstAddrBus] jump_addr_from_id_to_if;
+    wire[`InstBus] inst_from_if_to_ifid;
 
     //if_id -- id
     wire flag_from_ifid_to_id;
@@ -81,6 +81,7 @@ module cpu(
   
     //id -- id_ex
     wire[`InstAddrBus] pc_from_id_to_idex;
+    wire[`InstBus] inst_from_id_to_idex;
     wire[`OpcodeBus] opcode_from_id_to_idex;
     wire[`OptBus] opt_from_id_to_idex;
     wire[`RegBus] rdata1_from_id_to_idex;
@@ -149,15 +150,14 @@ module cpu(
         .read_hit_i(read_hit_from_icache_to_if),
         .read_inst_i(read_inst_from_icache_to_if),
 
-
         .read_o(read_from_if_to_icache),
         .read_addr_o(read_addr_from_if_to_icache),
         .write_o(write_from_if_to_icache),
         .write_addr_o(write_addr_from_if_to_icache),
         .write_inst_o(write_inst_from_if_to_icache),
 
-        .branch_from_id(branch_from_id_to_if),
-        .jump_addr_from_id(jump_addr_from_id_to_if),        
+        .branch_from_ex(branch_from_ex),
+        .jump_addr_from_ex(jump_addr_from_ex),        
 
         .data_from_memctrl(data_from_ctrl_to_if),
 
@@ -173,12 +173,14 @@ module cpu(
     if_id if_id0(
         .clk(clk_in), .rst(rst_in),
 
+        .stall(stall),
+        
         .if_flag(flag_from_if_to_ifid),
         .if_pc(pc_from_if_to_ifid),
         .if_inst(inst_from_if_to_ifid),
 
-        .stall(stall),
-        
+        .branch_from_ex(branch_from_ex),
+
         .id_flag(flag_from_ifid_to_id),
         .id_pc(pc_from_ifid_to_id),
         .id_inst(inst_from_ifid_to_id)
@@ -200,6 +202,7 @@ module cpu(
         .raddr2_o(raddr2_from_id_to_rf),
 
         .pc_o(pc_from_id_to_idex),
+        .inst_o(inst_from_id_to_idex),
         .opcode_o(opcode_from_id_to_idex),
         .opt_o(opt_from_id_to_idex),
         .rdata1_o(rdata1_from_id_to_idex),
@@ -207,16 +210,14 @@ module cpu(
         .we_o(we_from_id_to_idex),
         .waddr_o(waddr_from_id_to_idex),
         .imm_o(imm_from_id_to_idex),
-        .shamt_o(shamt_from_id_to_idex),
-
-        .branch_to_if(branch_from_id_to_if),
-        .jump_addr_to_if(jump_addr_from_id_to_if)
+        .shamt_o(shamt_from_id_to_idex)
     );
 
     id_ex id_ex0(
         .clk(clk_in), .rst(rst_in),
 
         .id_pc(pc_from_id_to_idex),
+        .id_inst(inst_from_id_to_idex),
         .id_opcode(opcode_from_id_to_idex),
         .id_opt(opt_from_id_to_idex),
         .id_rdata1(rdata1_from_id_to_idex),
@@ -227,6 +228,8 @@ module cpu(
         .id_shamt(shamt_from_id_to_idex),
 
         .stall(stall),
+
+        .branch_from_ex(branch_from_ex),
 
         .ex_pc(pc_from_idex_to_ex),
         .ex_opcode(opcode_from_idex_to_ex),
@@ -258,7 +261,10 @@ module cpu(
         .we_o(we_from_ex),
         .waddr_o(waddr_from_ex),
         .alu_o(alu_from_ex),
-        .rdata2_o(rdata2_from_ex_to_exmem)    
+        .rdata2_o(rdata2_from_ex_to_exmem),
+
+        .branch_o(branch_from_ex),
+        .jump_addr_o(jump_addr_from_ex)    
     );
 
     ex_mem ex_mem0(

@@ -40,6 +40,7 @@ module id(
 	
 	//output to ex
 	output reg[`InstAddrBus] pc_o,
+	output reg[`InstBus] inst_o,
 	output reg[`OpcodeBus] opcode_o,
 	output reg[`OptBus] opt_o,
 	output reg[`RegBus] rdata1_o,
@@ -47,11 +48,7 @@ module id(
 	output reg we_o,
 	output reg[`RegAddrBus] waddr_o,
 	output reg[`DataBus] imm_o,
-	output reg[`ShamtBus] shamt_o,
-
-	//output to if
-	output reg branch_to_if,
-	output reg[`InstAddrBus] jump_addr_to_if
+	output reg[`ShamtBus] shamt_o
     );
     
 	wire[`OpcodeBus] opcode = inst_i[`OpcodeBus];
@@ -73,8 +70,7 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        	branch_to_if = `Disable;
-        	jump_addr_to_if = `ZeroWord;
+        	inst_o = `ZeroWord;
         end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
@@ -85,8 +81,7 @@ module id(
 	        waddr_o = inst_i[11: 7];
 	        imm_o = `ZeroWord;
 	        shamt_o = 5'b0;
-	        branch_to_if = `Disable;
-	        jump_addr_to_if = `ZeroWord;
+	        inst_o = inst_i;
 	        case(opcode)
 	            `OpcodeLUI:
 	                begin
@@ -111,8 +106,6 @@ module id(
 	            		we_o = `Enable;
 	            		re1_o = `Disable;
 	            		re2_o = `Disable;
-	            		branch_to_if = `Enable;
-	            		jump_addr_to_if = pc_i + imm_o;
 	            	end
 	            `OpcodeJALR:
 	            	begin
@@ -121,8 +114,6 @@ module id(
 	       				we_o = `Enable;
 	       				re1_o = `Enable;
 	       				re2_o = `Disable;
-	       				branch_to_if = `Enable;
-	            		jump_addr_to_if = rdata1_i + imm_o;
 	       			end
 	       		`OpcodeBranch:
 	       			begin
@@ -134,50 +125,26 @@ module id(
 					 		3'b000: 
 					 			begin 
 					 				opt_o = `OptBEQ; 
-					 				if (rdata1_i == rdata2_i) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		3'b001: 
 					 			begin 
 					 				opt_o = `OptBNE;
-					 				if (rdata1_i != rdata2_i) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		3'b100: 
 					 			begin 
 					 				opt_o = `OptBLT;
-					 				if ($signed(rdata1_i) < $signed(rdata2_i)) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		3'b101:	
 					 			begin 
 					 				opt_o = `OptBGE; 
-					 				if ($signed(rdata1_i) >= $signed(rdata2_i)) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		3'b110: 
 					 			begin 
 					 				opt_o = `OptBLTU;
-					 				if (rdata1_i < rdata2_i) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		3'b111: 
 					 			begin 
 					 				opt_o = `OptBGEU;
-					 				if (rdata1_i >= rdata2_i) begin
-					 					branch_to_if = `Enable;
-					 					jump_addr_to_if = pc_i + imm_o;
-					 				end
 					 			end
 					 		default: 
 					 			begin 
@@ -369,8 +336,7 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        	branch_to_if = `Disable;
-	        jump_addr_to_if = `ZeroWord;
+        	inst_o = `ZeroWord;
     	end
     end
 	

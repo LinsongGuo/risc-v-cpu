@@ -32,6 +32,9 @@ module if_id(
     input wire[`InstAddrBus] if_pc,
 	input wire[`InstBus] if_inst,	
     
+    //input from ex
+    input wire branch_from_ex,
+
     //output to id
     output reg id_flag,
 	output reg[`InstAddrBus] id_pc,
@@ -45,18 +48,24 @@ module if_id(
             id_inst <= `ZeroWord;
         end else begin
             if (stall[1] == `Stop && stall[2] == `NoStop) begin
-        		id_flag <= `Disable;
-                id_pc <= `ZeroWord;
-        		id_inst <= `ZeroWord;
-            end else if (stall[1] == `NoStop && if_flag == 1'b1) begin
-                id_flag <= if_flag;
-                id_pc <= if_pc - 32'b100;
-        		id_inst <= if_inst;
-                $write("%04x %08x\n", if_pc - 32'b100, if_inst);
-        	end else begin
                 id_flag <= `Disable;
                 id_pc <= `ZeroWord;
                 id_inst <= `ZeroWord;
+            end else if (stall[1] == `NoStop) begin
+                if (branch_from_ex == 1'b1) begin
+                    id_flag <= `Disable;
+                    id_pc <= `ZeroWord;
+                    id_inst <= `ZeroWord;
+                end else if (if_flag == 1'b1) begin
+                    id_flag <= if_flag;
+                    id_pc <= if_pc;
+                    id_inst <= if_inst;
+                    //$write("%04x %08x\n", if_pc, if_inst);    
+                end else begin
+                    id_flag <= `Disable;
+                    id_pc <= `ZeroWord;
+                    id_inst <= `ZeroWord;
+                end  
             end
     	end
 	end
