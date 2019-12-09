@@ -29,7 +29,6 @@
 module dual_port_ram_sync
 #(
   parameter ADDR_WIDTH = 6,
-  //parameter ADDR_WIDTH = 4,
   parameter DATA_WIDTH = 8
 )
 (
@@ -62,8 +61,7 @@ endmodule
 // Single port RAM with synchronous read.
 module single_port_ram_sync
 #(
-  parameter ADDR_WIDTH = 6,// ATTENTION
-  //parameter ADDR_WIDTH = 2,
+  parameter ADDR_WIDTH = 6,
   parameter DATA_WIDTH = 8
 )
 (
@@ -92,7 +90,8 @@ initial begin
   for (i=0;i<2**ADDR_WIDTH;i=i+1) begin
     ram[i] = 0;
   end
-  $readmemh("D:/courses/CA/Arch2019_Assignment-master/riscv/test/test.data", ram); // add test.data to vivado project or specify a valid file path
+  $readmemh("D:/courses/CA/Arch2019_Assignment-master/riscv/test/test.data", ram);
+  //$readmemh("test.data", ram); // add test.data to vivado project or specify a valid file path
 end
 
 endmodule

@@ -267,7 +267,7 @@ module If(
 							end else begin
 								pc <= pc;
 								inst <= inst;
-								if_state <= 4'b01101;
+								if_state <= 4'b1101;
 							end
 						end
 				endcase

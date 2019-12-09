@@ -84,20 +84,20 @@ module regfile(
    
     		//register1
     		if (re1_i == `Enable) begin
-    			if (wb_we_i == `Enable && raddr1_i == wb_waddr_i) begin
-    				rdata1_o = wb_wdata_i;
+    			if (ex_we_i == `Enable && raddr1_i == ex_waddr_i) begin
+    				if (ex_opcode_i == `OpcodeLoad) begin
+    					stallreq_from_id_reg1 = 1'b1;
+    				end else begin
+    					rdata1_o = ex_alu_i;
+    				end
     			end else if (mem_we_i == `Enable && raddr1_i == mem_waddr_i) begin
     				if (mem_opcode_i == `OpcodeLoad) begin
     					stallreq_from_id_reg1 = 1'b1;
     				end else begin
-    					rdata1_o <= mem_wdata_i;
+    					rdata1_o = mem_wdata_i;
     				end
-    			end else if (ex_we_i == `Enable && raddr1_i == ex_waddr_i) begin
-    				if (ex_opcode_i == `OpcodeLoad) begin
-    					stallreq_from_id_reg1 = 1'b1;
-    				end else begin
-    					rdata1_o <= ex_alu_i;
-    				end
+    			end else if (wb_we_i == `Enable && raddr1_i == wb_waddr_i) begin
+    				rdata1_o = wb_wdata_i;
     			end else if (raddr1_i == 5'h0) begin
     				rdata1_o = `ZeroWord;
     			end else begin
@@ -109,20 +109,20 @@ module regfile(
     		
     		//register2
     		if (re2_i == `Enable) begin
-				if (wb_we_i == `Enable && raddr2_i == wb_waddr_i) begin
-					rdata2_o = wb_wdata_i;
+				if (ex_we_i == `Enable && raddr2_i == ex_waddr_i) begin
+					if (ex_opcode_i == `OpcodeLoad) begin
+						stallreq_from_id_reg2 = 1'b1;
+					end else begin
+						rdata2_o = ex_alu_i;
+					end
 				end else if (mem_we_i == `Enable && raddr2_i == mem_waddr_i) begin
 					if (mem_opcode_i == `OpcodeLoad) begin
 						stallreq_from_id_reg2 = 1'b1;
 					end else begin
 						rdata2_o = mem_wdata_i;
 					end
-				end else if (ex_we_i == `Enable && raddr2_i == ex_waddr_i) begin
-					if (ex_opcode_i == `OpcodeLoad) begin
-						stallreq_from_id_reg2 = 1'b1;
-					end else begin
-						rdata2_o = ex_alu_i;
-					end
+				end else if (wb_we_i == `Enable && raddr2_i == wb_waddr_i) begin
+					rdata2_o = wb_wdata_i;
 				end else if (raddr2_i == 5'h0) begin
 					rdata2_o = `ZeroWord;
 				end else begin
