@@ -61,7 +61,7 @@ module regfile(
     integer i;
     initial begin
     	for (i = 0; i < 32; i = i + 1) begin
-    		regs[i] = 32'b0;
+    		regs[i] = `ZeroWord;
     	end
     end
 
@@ -83,7 +83,9 @@ module regfile(
    
     		//register1
     		if (re1_i == `Enable) begin
-    			if (ex_we_i == `Enable && raddr1_i == ex_waddr_i) begin
+    			if (raddr1_i == 5'h0) begin
+    				rdata1_o = `ZeroWord;
+    			end else if (ex_we_i == `Enable && raddr1_i == ex_waddr_i) begin
     				if (ex_opcode_i == `OpcodeLoad) begin
     					stallreq_from_id_reg1 = 1'b1;
     				end else begin
@@ -97,8 +99,6 @@ module regfile(
     				end
     			end else if (wb_we_i == `Enable && raddr1_i == wb_waddr_i) begin
     				rdata1_o = wb_wdata_i;
-    			end else if (raddr1_i == 5'h0) begin
-    				rdata1_o = `ZeroWord;
     			end else begin
     				rdata1_o = regs[raddr1_i];
     			end
@@ -108,7 +108,9 @@ module regfile(
     		
     		//register2
     		if (re2_i == `Enable) begin
-				if (ex_we_i == `Enable && raddr2_i == ex_waddr_i) begin
+				if (raddr2_i == 5'h0) begin
+					rdata2_o = `ZeroWord;
+				end else if (ex_we_i == `Enable && raddr2_i == ex_waddr_i) begin
 					if (ex_opcode_i == `OpcodeLoad) begin
 						stallreq_from_id_reg2 = 1'b1;
 					end else begin
@@ -122,8 +124,6 @@ module regfile(
 					end
 				end else if (wb_we_i == `Enable && raddr2_i == wb_waddr_i) begin
 					rdata2_o = wb_wdata_i;
-				end else if (raddr2_i == 5'h0) begin
-					rdata2_o = `ZeroWord;
 				end else begin
 					rdata2_o = regs[raddr2_i];
 				end

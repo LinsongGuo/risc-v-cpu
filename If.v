@@ -30,9 +30,9 @@ module If(
 
 	//output to icache
 	output reg read_o,
-	output reg[`InstAddrBus] read_addr_o,
+	output reg[16: 0] read_addr_o,
 	output reg write_o,
-	output reg[`InstAddrBus] write_addr_o,
+	output reg[16: 0] write_addr_o,
 	output reg[`InstBus] write_inst_o,
 
 	//input from ex(branches)
@@ -74,7 +74,7 @@ module If(
 				if (stall[0]) begin
 					addr_to_memctrl <= jump_addr_from_ex;
 					read_o = 1'b1;
-					read_addr_o <= jump_addr_from_ex;
+					read_addr_o <= jump_addr_from_ex[16: 0];
 					flag_o <= 1'b0;
 					pc <= jump_addr_from_ex;
 					inst <= `ZeroWord;
@@ -92,7 +92,7 @@ module If(
 							if (!stall[0]) begin
 								addr_to_memctrl <= pc;
 								read_o = 1'b1;
-								read_addr_o <= pc;
+								read_addr_o <= pc[16: 0];
 								flag_o <= 1'b0;
 								pc <= pc;
 								inst <= `ZeroWord;
@@ -109,7 +109,7 @@ module If(
 								if (read_hit_i == 1'b1) begin
 									addr_to_memctrl <= pc + 32'b100; 
 									read_o = 1'b1;
-									read_addr_o <= pc + 32'b100;
+									read_addr_o <= pc[16: 0] + 17'b100;
 									flag_o <= 1'b1;
 									pc_o <= pc;
 									inst_o <= read_inst_i;
@@ -237,7 +237,7 @@ module If(
 						begin
 							if (!stall[0]) begin
 								write_o <= 1'b1;
-								write_addr_o <= pc;
+								write_addr_o <= pc[16: 0];
 								write_inst_o <= {data_from_memctrl, inst[23: 0]};
 								flag_o <= 1'b1;
 								pc_o <= pc;
@@ -247,7 +247,7 @@ module If(
 								if_state <= 4'b0000;
 							end else begin
 								write_o <= 1'b1;
-								write_addr_o <= pc;
+								write_addr_o <= pc[16: 0];
 								write_inst_o <= {data_from_memctrl, inst[23: 0]};
 								pc <= pc;
 								inst <= {data_from_memctrl, inst[23: 0]};

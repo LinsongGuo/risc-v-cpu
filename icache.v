@@ -22,13 +22,14 @@
 
 
 module icache(
+	input wire clk,
 	input wire rst,
 
 	//input from if
 	input wire read_i, 
-	input wire[`InstAddrBus] read_addr_i,
+	input wire[16: 0] read_addr_i,
 	input wire write_i,
-	input wire[`InstAddrBus] write_addr_i,
+	input wire[16: 0] write_addr_i,
 	input wire[`InstBus] write_inst_i,
 	
 	//output to if
@@ -59,8 +60,8 @@ module icache(
 			cache_data[i] = 32'b0;
 		end
 	end
-
-	always @ (*) begin
+	
+	always @ (posedge clk) begin
 		if (rst == `Disable && write_i == 1'b1) begin
 			cache_valid[write_index_i] = 1'b1;
 			cache_tag[write_index_i] = write_tag_i;

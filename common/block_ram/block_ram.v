@@ -90,8 +90,8 @@ initial begin
   for (i=0;i<2**ADDR_WIDTH;i=i+1) begin
     ram[i] = 0;
   end
-  $readmemh("D:/courses/CA/Arch2019_Assignment-master/riscv/test/test.data", ram);
-  //$readmemh("test.data", ram); // add test.data to vivado project or specify a valid file path
+//  $readmemh("D:/courses/CA/Arch2019_Assignment-master/riscv/test/test.data", ram);
+$readmemh("test.data", ram); // add test.data to vivado project or specify a valid file path
 end
 
 endmodule

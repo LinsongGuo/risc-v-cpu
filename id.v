@@ -50,24 +50,28 @@ module id(
 	output reg[`ShamtBus] shamt_o
     );
     
-	wire[`OpcodeBus] opcode = inst_i[`OpcodeBus];
-    wire[2:0] funct3 = inst_i[14: 12];
-    wire[6:0] funct7 = inst_i[31: 25];
+	wire[`OpcodeBus] opcode;
+	wire[2: 0] funct3;
+    wire[6: 0] funct7;
     
+    assign opcode = inst_i[`OpcodeBus];
+    assign funct3 = inst_i[14: 12];
+    assign funct7 = inst_i[31: 25];
+
     always @ (*) begin
         if (rst == `Enable) begin
         	re1_o = `Disable;
         	re2_o = `Disable;
+        	we_o = `Disable;
+        	opt_o = `OptNOP;
+        	imm_o = `ZeroWord;
         	raddr1_o = `NOPRegAddr;
         	raddr2_o = `NOPRegAddr;
         	pc_o = `ZeroWord;
         	opcode_o = `OpcodeNOP;
-        	opt_o = `OptNOP;
         	rdata1_o = `ZeroWord;
         	rdata2_o = `ZeroWord;
-        	we_o = `Disable;
         	waddr_o = `NOPRegAddr;
-        	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
         end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
@@ -77,8 +81,7 @@ module id(
 	        rdata1_o = rdata1_i;
 	        rdata2_o = rdata2_i;
 	        waddr_o = inst_i[11: 7];
-	        imm_o = `ZeroWord;
-	        shamt_o = 5'b0;
+	        shamt_o = inst_i[24: 20];
 	        case(opcode)
 	            `OpcodeLUI:
 	                begin
@@ -151,34 +154,67 @@ module id(
 	        		end
 	        	`OpcodeLoad:
 	        		begin
-	        			case(funct3)
-	        				3'b000: begin opt_o = `OptLB; end
-				 			3'b001: begin opt_o = `OptLH; end
-				 			3'b010: begin opt_o = `OptLW; end
-				 			3'b100: begin opt_o = `OptLBU; end
-				 			3'b101: begin opt_o = `OptLHU; end
-				 			default: begin opt_o = `OptNOP; end
-				 		endcase
-				 		imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
+	        			imm_o = {{20{inst_i[31]}}, inst_i[31:20]};
 				 		we_o = `Enable;
 				 		re1_o = `Enable;
 				 		re2_o = `Disable;
+	        			case(funct3)
+	        				3'b000: 
+	        					begin 
+	        						opt_o = `OptLB; 
+	        					end
+				 			3'b001: 
+				 				begin 
+				 					opt_o = `OptLH; 
+				 				end
+				 			3'b010: 
+				 				begin 
+				 					opt_o = `OptLW;
+				 				end
+				 			3'b100: 
+				 				begin 
+				 					opt_o = `OptLBU;
+				 				end
+				 			3'b101: 
+				 				begin 
+				 					opt_o = `OptLHU; 
+				 				end
+				 			default: 
+				 				begin 
+				 					opt_o = `OptNOP; 
+				 				end
+				 		endcase
 	        		end
 	        	`OpcodeStore:
 	        		begin
-	        			case(funct3)
-	        				3'b000: begin opt_o = `OptSB; end
-				 			3'b001: begin opt_o = `OptSH; end
-				 			3'b010: begin opt_o = `OptSW; end
-				 			default: begin opt_o = `OptNOP; end
-				 		endcase
-				 		imm_o = {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]};
+	        			imm_o = {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]};
 				 		we_o = `Disable;
 				 		re1_o = `Enable;
 				 		re2_o = `Enable;
+	        			case(funct3)
+	        				3'b000: 
+	        					begin 
+	        						opt_o = `OptSB; 
+	        					end
+				 			3'b001: 
+				 				begin 
+				 					opt_o = `OptSH;
+				 				end
+				 			3'b010: 
+				 				begin 
+				 					opt_o = `OptSW;
+				 				end
+				 			default: 
+				 				begin 
+				 					opt_o = `OptNOP; 
+				 				end
+				 		endcase
 				 	end
 				 `OpcodeCalcI:
 				 	begin
+				 		we_o = `Enable;
+				 		re1_o = `Enable;
+				 		re2_o = `Disable;
 				 		case(funct3)
 				 			3'b00: 
 				 				begin 
@@ -212,34 +248,37 @@ module id(
 				 				end
 				 			3'b001:
 				 				begin
+				 					imm_o = `ZeroWord;
 				 					if (funct7 == 7'b0000000) begin
 				 						opt_o = `OptSLLI;
-				 						shamt_o = inst_i[24: 20];
 				 					end else begin
 				 						opt_o = `OptNOP;
 				 					end
 				 				end
 				 			3'b101:
 				 				begin
+				 					imm_o = `ZeroWord;
 				 					if (funct7 == 7'b0000000) begin
 				 						opt_o = `OptSRLI;
-				 						shamt_o = inst_i[24: 20];
 				 					end else if (funct7 == 7'b0100000) begin
 				 						opt_o = `OptSRAI;
-				 						shamt_o = inst_i[24: 20];
 				 					end else begin 
 				 						opt_o = `OptNOP;
 				 					end
 				 				end
 				 			default:
-				 				begin opt_o = `OptNOP; end
+				 				begin 
+				 					opt_o = `OptNOP; 
+				 					imm_o = `ZeroWord;
+				 				end
 				 		endcase
-				 		we_o = `Enable;
-				 		re1_o = `Enable;
-				 		re2_o = `Disable;
 				 	end	
 				 `OpcodeCalc:
 				 	begin
+				 		we_o = `Enable;
+				 		re1_o = `Enable;
+				 		re2_o = `Enable;
+				 		imm_o = `ZeroWord;
 				 		case(funct3)
 				 			3'b000:
 				 				begin
@@ -310,28 +349,33 @@ module id(
 				 					end
 				 				end
 				 			default:
-				 				begin opt_o = `OptNOP; end
+				 				begin 
+				 					opt_o = `OptNOP;
+				 				end
 				 		endcase
+				 	end
+				 default:
+				 	begin 
 				 		we_o = `Enable;
 				 		re1_o = `Enable;
 				 		re2_o = `Enable;
-				 	end
-				 default:
-				 	begin opt_o = `OptNOP; end	
+				 		imm_o = `ZeroWord;
+				 		opt_o = `OptNOP; 
+				 	end	
 	        endcase
     	end else begin
     		re1_o = `Disable;
         	re2_o = `Disable;
+        	we_o = `Disable;
+        	opt_o = `OptNOP;
+        	imm_o = `ZeroWord;
         	raddr1_o = `NOPRegAddr;
         	raddr2_o = `NOPRegAddr;
         	pc_o = `ZeroWord;
         	opcode_o = `OpcodeNOP;
-        	opt_o = `OptNOP;
         	rdata1_o = `ZeroWord;
         	rdata2_o = `ZeroWord;
-        	we_o = `Disable;
         	waddr_o = `NOPRegAddr;
-        	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
     	end
     end

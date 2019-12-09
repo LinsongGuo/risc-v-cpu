@@ -50,10 +50,10 @@ module cpu(
 
     //icache -- if
     wire write_from_if_to_icache;
-    wire[`InstAddrBus] write_addr_from_if_to_icache;
+    wire[16: 0] write_addr_from_if_to_icache;
     wire[`InstBus] write_inst_from_if_to_icache;
     wire read_from_if_to_icache;
-    wire[`InstAddrBus] read_addr_from_if_to_icache;
+    wire[16: 0] read_addr_from_if_to_icache;
     wire read_hit_from_icache_to_if;
     wire[`InstBus] read_inst_from_icache_to_if;
 
@@ -129,6 +129,7 @@ module cpu(
     wire[`RegBus] wdata_from_memwb_to_rf;
   
     icache icache0(
+        .clk(clk_in),
         .rst(rst_in),
 
         .read_i(read_from_if_to_icache),
