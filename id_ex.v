@@ -26,7 +26,6 @@ module id_ex(
     
     //input from id
     input wire[`InstAddrBus] id_pc,
-    input wire[`InstBus] id_inst,
     input wire[`OpcodeBus] id_opcode,
     input wire[`OptBus] id_opt,
     input wire[`RegBus] id_rdata1,

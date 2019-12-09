@@ -81,7 +81,6 @@ module cpu(
   
     //id -- id_ex
     wire[`InstAddrBus] pc_from_id_to_idex;
-    wire[`InstBus] inst_from_id_to_idex;
     wire[`OpcodeBus] opcode_from_id_to_idex;
     wire[`OptBus] opt_from_id_to_idex;
     wire[`RegBus] rdata1_from_id_to_idex;
@@ -120,7 +119,6 @@ module cpu(
     
     //mem -- mem_wb / regfile(forwarding)
     wire[`OpcodeBus] opcode_from_mem;
-    wire[`OptBus] opt_from_mem_to_memwb;
     wire we_from_mem;
     wire[`RegAddrBus] waddr_from_mem;
     wire[`RegBus] wdata_from_mem;
@@ -202,7 +200,6 @@ module cpu(
         .raddr2_o(raddr2_from_id_to_rf),
 
         .pc_o(pc_from_id_to_idex),
-        .inst_o(inst_from_id_to_idex),
         .opcode_o(opcode_from_id_to_idex),
         .opt_o(opt_from_id_to_idex),
         .rdata1_o(rdata1_from_id_to_idex),
@@ -217,7 +214,6 @@ module cpu(
         .clk(clk_in), .rst(rst_in),
 
         .id_pc(pc_from_id_to_idex),
-        .id_inst(inst_from_id_to_idex),
         .id_opcode(opcode_from_id_to_idex),
         .id_opt(opt_from_id_to_idex),
         .id_rdata1(rdata1_from_id_to_idex),
@@ -298,7 +294,6 @@ module cpu(
         .rdata2_i(rdata2_from_exmem_to_mem),
         
         .opcode_o(opcode_from_mem),
-        .opt_o(opt_from_mem_to_memwb),
         .we_o(we_from_mem),
         .waddr_o(waddr_from_mem),
         .wdata_o(wdata_from_mem),
@@ -327,7 +322,7 @@ module cpu(
     );
 
     regfile regfile0(
-        .clk(clk_in), .rst(rst_in),
+        .rst(rst_in),
 
         .wb_we_i(we_from_memwb_to_rf),
         .wb_waddr_i(waddr_from_memwb_to_rf),

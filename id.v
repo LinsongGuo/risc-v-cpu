@@ -40,7 +40,6 @@ module id(
 	
 	//output to ex
 	output reg[`InstAddrBus] pc_o,
-	output reg[`InstBus] inst_o,
 	output reg[`OpcodeBus] opcode_o,
 	output reg[`OptBus] opt_o,
 	output reg[`RegBus] rdata1_o,
@@ -70,7 +69,6 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        	inst_o = `ZeroWord;
         end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
@@ -81,7 +79,6 @@ module id(
 	        waddr_o = inst_i[11: 7];
 	        imm_o = `ZeroWord;
 	        shamt_o = 5'b0;
-	        inst_o = inst_i;
 	        case(opcode)
 	            `OpcodeLUI:
 	                begin
@@ -336,7 +333,6 @@ module id(
         	waddr_o = `NOPRegAddr;
         	imm_o = `ZeroWord;
         	shamt_o = 5'b0;
-        	inst_o = `ZeroWord;
     	end
     end
 	
