@@ -323,6 +323,7 @@ module cpu(
     );
 
     regfile regfile0(
+        .clk(clk_in),
         .rst(rst_in),
 
         .wb_we_i(we_from_memwb_to_rf),

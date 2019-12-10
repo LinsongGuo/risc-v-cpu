@@ -60,7 +60,7 @@ module if_id(
                     id_flag <= if_flag;
                     id_pc <= if_pc;
                     id_inst <= if_inst;
-                  //$write("%04x %08x\n", if_pc, if_inst);    
+                    $write("%04x %08x\n", if_pc, if_inst);    
                 end else begin
                     id_flag <= `Disable;
                     id_pc <= `ZeroWord;

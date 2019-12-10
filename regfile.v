@@ -21,6 +21,7 @@
 `include "defines.v"
 
 module regfile(
+	input wire clk,
 	input wire rst,
 	
 	//input from mem_wb
@@ -66,7 +67,7 @@ module regfile(
     end
 
     // write data to register
-    always @ (*) begin
+    always @ (posedge clk) begin
     	if (rst == `Disable && wb_we_i == `Enable && wb_waddr_i != 5'h0) begin
     		regs[wb_waddr_i] <= wb_wdata_i;
     	end
@@ -76,63 +77,87 @@ module regfile(
     always @ (*) begin
     	if (rst == `Enable) begin
     		rdata1_o = `ZeroWord;
-			rdata2_o = `ZeroWord;
-    	end else begin
     		stallreq_from_id_reg1 = 1'b0;
-    		stallreq_from_id_reg2 = 1'b0;
-   
-    		//register1
+    	end else begin
     		if (re1_i == `Enable) begin
-    			if (raddr1_i == 5'h0) begin
+    			if (raddr1_i == 5'b00000) begin
     				rdata1_o = `ZeroWord;
+    				stallreq_from_id_reg1 = 1'b0;
     			end else if (ex_we_i == `Enable && raddr1_i == ex_waddr_i) begin
     				if (ex_opcode_i == `OpcodeLoad) begin
+    					rdata1_o = `ZeroWord;
     					stallreq_from_id_reg1 = 1'b1;
     				end else begin
     					rdata1_o = ex_alu_i;
+    					stallreq_from_id_reg1 = 1'b0;
     				end
     			end else if (mem_we_i == `Enable && raddr1_i == mem_waddr_i) begin
     				if (mem_opcode_i == `OpcodeLoad) begin
+    					rdata1_o = `ZeroWord;
     					stallreq_from_id_reg1 = 1'b1;
     				end else begin
     					rdata1_o = mem_wdata_i;
+    					stallreq_from_id_reg1 = 1'b0;
     				end
     			end else if (wb_we_i == `Enable && raddr1_i == wb_waddr_i) begin
     				rdata1_o = wb_wdata_i;
+    				stallreq_from_id_reg1 = 1'b0;
     			end else begin
     				rdata1_o = regs[raddr1_i];
+    				stallreq_from_id_reg1 = 1'b0;
     			end
     		end else begin
     			rdata1_o = `ZeroWord;
+    			stallreq_from_id_reg1 = 1'b0;
     		end
-    		
-    		//register2
+ 		end
+	end
+
+
+	always @ (*) begin
+    	if (rst == `Enable) begin
+			rdata2_o = `ZeroWord;
+    		stallreq_from_id_reg2 = 1'b0; 
+    	end else begin
     		if (re2_i == `Enable) begin
-				if (raddr2_i == 5'h0) begin
+				if (raddr2_i == 5'b00000) begin
 					rdata2_o = `ZeroWord;
+    				stallreq_from_id_reg2 = 1'b0;   
 				end else if (ex_we_i == `Enable && raddr2_i == ex_waddr_i) begin
 					if (ex_opcode_i == `OpcodeLoad) begin
+						rdata2_o = `ZeroWord;
 						stallreq_from_id_reg2 = 1'b1;
 					end else begin
 						rdata2_o = ex_alu_i;
+						stallreq_from_id_reg2 = 1'b0;
 					end
 				end else if (mem_we_i == `Enable && raddr2_i == mem_waddr_i) begin
 					if (mem_opcode_i == `OpcodeLoad) begin
+						rdata2_o = `ZeroWord;
 						stallreq_from_id_reg2 = 1'b1;
 					end else begin
 						rdata2_o = mem_wdata_i;
+						stallreq_from_id_reg2 = 1'b0;
 					end
 				end else if (wb_we_i == `Enable && raddr2_i == wb_waddr_i) begin
 					rdata2_o = wb_wdata_i;
+					stallreq_from_id_reg2 = 1'b0;
 				end else begin
 					rdata2_o = regs[raddr2_i];
+					stallreq_from_id_reg2 = 1'b0;
 				end
 			end else begin
 				rdata2_o = `ZeroWord;
+				stallreq_from_id_reg2 = 1'b0;
 			end
-
-			stallreq_from_id = stallreq_from_id_reg1 | stallreq_from_id_reg2;
 		end
 	end
 	
+	always @ (*) begin
+		if (rst == `Enable) begin
+			stallreq_from_id = 1'b0;
+		end else begin
+			stallreq_from_id = stallreq_from_id_reg1 | stallreq_from_id_reg2;
+		end
+	end
 endmodule
