@@ -35,8 +35,11 @@ module if_id(
     //input from ex
     input wire branch_from_ex,
 
+    input wire prediction_from_predictor,
+
     //output to id
     output reg id_flag,
+    output reg id_prediction,
 	output reg[`InstAddrBus] id_pc,
 	output reg[`InstBus] id_inst
     );
@@ -49,20 +52,24 @@ module if_id(
         end else begin
             if (stall[1] == `Stop && stall[2] == `NoStop) begin
                 id_flag <= `Disable;
+                id_prediction <= 1'b0;
                 id_pc <= `ZeroWord;
                 id_inst <= `ZeroWord;
             end else if (stall[1] == `NoStop) begin
                 if (branch_from_ex == 1'b1) begin
                     id_flag <= `Disable;
+                    id_prediction <= 1'b0;
                     id_pc <= `ZeroWord;
                     id_inst <= `ZeroWord;
                 end else if (if_flag == 1'b1) begin
                     id_flag <= if_flag;
+                    id_prediction <= prediction_from_predictor;
                     id_pc <= if_pc;
                     id_inst <= if_inst;
-                    $write("%04x %08x\n", if_pc, if_inst);    
+                   // $write("%04x %08x\n", if_pc, if_inst);    
                 end else begin
                     id_flag <= `Disable;
+                    id_prediction <= 1'b0;
                     id_pc <= `ZeroWord;
                     id_inst <= `ZeroWord;
                 end  

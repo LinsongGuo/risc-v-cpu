@@ -25,6 +25,7 @@ module id(
 	
 	//input from if_id
 	input wire flag_i,
+	input wire prediction_i,
 	input wire[`InstAddrBus] pc_i,
 	input wire[`InstBus] inst_i,
 	
@@ -39,6 +40,7 @@ module id(
 	output reg[`RegAddrBus] raddr2_o,
 	
 	//output to ex
+	output reg prediction_o,
 	output reg[`InstAddrBus] pc_o,
 	output reg[`OpcodeBus] opcode_o,
 	output reg[`OptBus] opt_o,
@@ -60,6 +62,7 @@ module id(
 
     always @ (*) begin
         if (rst == `Enable) begin
+        	prediction_o = 1'b0;
         	re1_o = `Disable;
         	re2_o = `Disable;
         	we_o = `Disable;
@@ -74,6 +77,7 @@ module id(
         	waddr_o = `NOPRegAddr;
         	shamt_o = 5'b0;
         end else if (flag_i == 1'b1) begin
+        	prediction_o <= prediction_i;
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
 	        pc_o = pc_i;
@@ -364,6 +368,7 @@ module id(
 				 	end	
 	        endcase
     	end else begin
+    		prediction_o = 1'b0;
     		re1_o = `Disable;
         	re2_o = `Disable;
         	we_o = `Disable;
