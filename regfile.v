@@ -23,6 +23,7 @@
 module regfile(
 	input wire clk,
 	input wire rst,
+	input wire rdy,
 	
 	//input from mem_wb
 	input wire wb_we_i,

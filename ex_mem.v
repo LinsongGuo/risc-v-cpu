@@ -23,6 +23,7 @@
 module ex_mem(
     input wire clk,
     input wire rst,
+    input wire rdy,
     
     //input from ex
     input wire[`OpcodeBus] ex_opcode,

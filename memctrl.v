@@ -22,6 +22,7 @@
 
 module memctrl(
 	input wire rst,
+	input wire rdy,
 
 	//input from if
 	input wire[`InstAddrBus] addr_from_if,

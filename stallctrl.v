@@ -21,6 +21,7 @@
 
 module stallctrl(
 	input wire rst,
+	input wire rdy,
 
 	input wire stallreq_from_id,
 	input wire stallreq_from_mem,
@@ -32,7 +33,7 @@ module stallctrl(
 		if (rst == `Enable) begin
 			stall = 5'b00000;
 		end else begin
-			if (stallreq_from_mem == `Stop) begin
+			if (stallreq_from_mem == `Stop || rdy == `Disable) begin
 				stall = 5'b11111;
 			end else if (stallreq_from_id == `Stop) begin
 				stall = 5'b00111;

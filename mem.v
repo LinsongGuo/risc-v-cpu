@@ -23,6 +23,7 @@
 module mem(
     input wire clk,
     input wire rst,
+    input wire rdy,
     
     //input from ex_mem
     input wire[`OpcodeBus] opcode_i,
@@ -109,7 +110,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b001;
                                 end else if (mem_state == 3'b001) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b10;
+                                    addr_to_memctrl <= alu_i;
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
@@ -137,7 +139,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
                                 end else if (mem_state == 3'b010) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b10;
+                                    addr_to_memctrl <= alu_i + 32'b1;
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b011;
@@ -163,7 +166,7 @@ module mem(
                                     data_to_memctrl <= rdata2_i[15: 8];    
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
-                                    mem_state = 3'b010;
+                                    mem_state <= 3'b010;
                                 end else if (mem_state == 3'b010) begin
                                     rw_to_memctrl <= 2'b10;
                                     addr_to_memctrl <= alu_i + 32'b10;
@@ -179,6 +182,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b100;
                                 end else if (mem_state == 3'b100) begin
+                                    rw_to_memctrl <= 2'b10;
+                                    addr_to_memctrl <= alu_i + 32'b11;
                                     rw_to_memctrl <= 2'b00;
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
@@ -202,7 +207,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b001;
                                 end else if (mem_state == 3'b001) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b01;
+                                    addr_to_memctrl <= alu_i;
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
@@ -222,7 +228,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b001;
                                 end else if (mem_state == 3'b001) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b01;
+                                    addr_to_memctrl <= alu_i;
                                     mem_done <= 1'b0;
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
@@ -249,7 +256,8 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
                                 end else if (mem_state == 3'b010) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b01;
+                                    addr_to_memctrl <= alu_i + 32'b1;
                                     mem_done <= 1'b0;
                                     mem_data <= {{24{1'b0}}, data_from_memctrl};
                                     mem_state <= 3'b011;
@@ -276,15 +284,16 @@ module mem(
                                     mem_data <= `ZeroWord;
                                     mem_state <= 3'b010;
                                 end else if (mem_state == 3'b010) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b01;
+                                    addr_to_memctrl <= alu_i + 32'b1;
                                     mem_done <= 1'b0;
                                     mem_data <= {{24{1'b0}}, data_from_memctrl};
                                     mem_state <= 3'b011;
                                 end else if (mem_state == 3'b011) begin
-                                    rw_to_memctrl = 2'b00;
+                                    rw_to_memctrl <= 2'b00;
                                     mem_done <= 1'b1;
                                     mem_data <= {{16{1'b0}}, data_from_memctrl, mem_data[7:0]};
-                                    mem_state = 3'b000;
+                                    mem_state <= 3'b000;
                                 end 
                             end
 
@@ -315,7 +324,8 @@ module mem(
                                     mem_data <= {{16{1'b0}}, data_from_memctrl, mem_data[7:0]};
                                     mem_state <= 3'b100;
                                 end else if (mem_state == 3'b100) begin
-                                    rw_to_memctrl <= 2'b00;
+                                    rw_to_memctrl <= 2'b01;
+                                    addr_to_memctrl <= alu_i + 32'b11;
                                     mem_done <= 1'b0;
                                     mem_data <= {{8{1'b0}}, data_from_memctrl, mem_data[15:0]};
                                     mem_state <= 3'b101;
@@ -333,7 +343,7 @@ module mem(
                     mem_state <= 4'b0000;
                 end 
             end else begin
-                mem_done = 1'b0;
+                mem_done <= 1'b0;
                 mem_data <= `ZeroWord;
                 mem_state <= 3'b000;
             end

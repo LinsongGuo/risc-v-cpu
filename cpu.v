@@ -50,10 +50,10 @@ module cpu(
 
     //icache -- if
     wire write_from_if_to_icache;
-    wire[16: 0] write_addr_from_if_to_icache;
+    wire[31: 0] write_addr_from_if_to_icache;
     wire[`InstBus] write_inst_from_if_to_icache;
     wire read_from_if_to_icache;
-    wire[16: 0] read_addr_from_if_to_icache;
+    wire[31: 0] read_addr_from_if_to_icache;
     wire read_hit_from_icache_to_if;
     wire[`InstBus] read_inst_from_icache_to_if;
 
@@ -127,24 +127,9 @@ module cpu(
     wire we_from_memwb_to_rf;
     wire[`RegAddrBus] waddr_from_memwb_to_rf;
     wire[`RegBus] wdata_from_memwb_to_rf;
-  
-    icache icache0(
-        .clk(clk_in),
-        .rst(rst_in),
-
-        .read_i(read_from_if_to_icache),
-        .read_addr_i(read_addr_from_if_to_icache),
-
-        .write_i(write_from_if_to_icache),
-        .write_addr_i(write_addr_from_if_to_icache),
-        .write_inst_i(write_inst_from_if_to_icache),
-
-        .read_hit_o(read_hit_from_icache_to_if),
-        .read_inst_o(read_inst_from_icache_to_if)
-    );
 
     If if0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
         
         .read_hit_i(read_hit_from_icache_to_if),
         .read_inst_i(read_inst_from_icache_to_if),
@@ -169,8 +154,23 @@ module cpu(
         .inst_o(inst_from_if_to_ifid)
     );
 
+   icache icache0(
+        .clk(clk_in),
+        .rst(rst_in),.rdy(rdy_in),
+
+        .read_i(read_from_if_to_icache),
+        .read_addr_i(read_addr_from_if_to_icache),
+
+        .write_i(write_from_if_to_icache),
+        .write_addr_i(write_addr_from_if_to_icache),
+        .write_inst_i(write_inst_from_if_to_icache),
+
+        .read_hit_o(read_hit_from_icache_to_if),
+        .read_inst_o(read_inst_from_icache_to_if)
+    );
+
     if_id if_id0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .stall(stall),
         
@@ -186,7 +186,7 @@ module cpu(
     );
     
     id id0(
-        .rst(rst_in),
+        .rst(rst_in), .rdy(rdy_in),
 
         .flag_i(flag_from_ifid_to_id),
         .pc_i(pc_from_ifid_to_id),
@@ -212,7 +212,7 @@ module cpu(
     );
 
     id_ex id_ex0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .id_pc(pc_from_id_to_idex),
         .id_opcode(opcode_from_id_to_idex),
@@ -241,7 +241,7 @@ module cpu(
 
 
      ex ex0(
-        .rst(rst_in),
+        .rst(rst_in), .rdy(rdy_in),
 
         .pc_i(pc_from_idex_to_ex),
         .opcode_i(opcode_from_idex_to_ex),
@@ -265,7 +265,7 @@ module cpu(
     );
 
     ex_mem ex_mem0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .ex_opcode(opcode_from_ex),
         .ex_opt(opt_from_ex_to_exmem),
@@ -285,7 +285,7 @@ module cpu(
     );
 
     mem mem0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .opcode_i(opcode_from_exmem_to_mem),
         .opt_i(opt_from_exmem_to_mem),
@@ -309,7 +309,7 @@ module cpu(
     );
 
     mem_wb mem_wb0(
-        .clk(clk_in), .rst(rst_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .mem_we(we_from_mem),
         .mem_waddr(waddr_from_mem),
@@ -324,7 +324,7 @@ module cpu(
 
     regfile regfile0(
         .clk(clk_in),
-        .rst(rst_in),
+        .rst(rst_in), .rdy(rdy_in),
 
         .wb_we_i(we_from_memwb_to_rf),
         .wb_waddr_i(waddr_from_memwb_to_rf),
@@ -352,7 +352,7 @@ module cpu(
     );
 
     stallctrl stallctrl(
-        .rst(rst_in),
+        .rst(rst_in), .rdy(rdy_in),
 
         .stallreq_from_id(stallreq_from_id),
         .stallreq_from_mem(stallreq_from_mem),
@@ -361,7 +361,7 @@ module cpu(
     );
 
     memctrl memctrl(
-        .rst(rst_in),
+        .rst(rst_in), .rdy(rdy_in),
 
         .addr_from_if(addr_from_if_to_ctrl),
 
@@ -379,21 +379,5 @@ module cpu(
         .addr_to_ram(mem_a),
         .data_to_ram(mem_dout)
     );
-/*
-always @(posedge clk_in)
-  begin
-    if (rst_in)
-      begin
-      
-      end
-    else if (!rdy_in)
-      begin
-      
-      end
-    else
-      begin
-      
-      end
-  end
-*/
+
 endmodule

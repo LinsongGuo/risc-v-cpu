@@ -22,9 +22,9 @@
 
 module ex(
     input wire rst,
+    input wire rdy,
     
     //input from id_ex
-    input wire prediction_i,
     input wire[`InstAddrBus] pc_i,
     input wire[`OpcodeBus] opcode_i,
     input wire[`OptBus] opt_i,
@@ -59,14 +59,14 @@ module ex(
             alu_o = `ZeroWord;
             branch_o = 1'b0;
             jump_addr_o = `ZeroWord;
-        end else if (rst == `Disable) begin
+        end begin
             opcode_o = opcode_i;
             opt_o = opt_i;
             we_o = we_i;
             waddr_o = waddr_i;
             rdata2_o = rdata2_i;
             case(opt_i)
-                `OptLUI:
+                    `OptLUI:
                     begin
                         alu_o = imm_i;
                         branch_o = 1'b0;
@@ -81,8 +81,8 @@ module ex(
                 `OptJAL:
                     begin
                         alu_o = pc_i + 4; 
-                        branch_o = 1'b0;
-                        jump_addr_o = `ZeroWord;
+                        branch_o = 1'b1;
+                        jump_addr_o = $signed(pc_i) + $signed(imm_i);
                     end
                 `OptJALR:
                     begin
@@ -94,126 +94,66 @@ module ex(
                     begin
                         alu_o = `ZeroWord;
                         if (rdata1_i == rdata2_i) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord;
                         end
                     end
                 `OptBNE:
                     begin
                         alu_o = `ZeroWord;
                         if (rdata1_i != rdata2_i) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord; 
                         end
                     end
                 `OptBLT:
                     begin
                         alu_o = `ZeroWord;
                         if ($signed(rdata1_i) < $signed(rdata2_i)) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord;
                         end
                     end
                 `OptBGE:
                     begin
                         alu_o = `ZeroWord;
                         if ($signed(rdata1_i) >= $signed(rdata2_i)) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord;
                         end
                     end
                 `OptBLTU:
                     begin
                         alu_o = `ZeroWord;
                         if (rdata1_i < rdata2_i) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord;
                         end
                     end
                 `OptBGEU:
                     begin
                         alu_o = `ZeroWord;
                         if (rdata1_i >= rdata2_i) begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord;
-                            end else begin
-                                branch_o = 1'b1;
-                                jump_addr_o = $signed(pc_i) + $signed(imm_i); 
-                            end                         
+                            branch_o = 1'b1;
+                            jump_addr_o = $signed(pc_i) + $signed(imm_i);                            
                         end else begin
-                            if (prediction_i == 1'b1) begin
-                                branch_o = 1'b1;
-                                jump_addr_o = pc_i + 32'b100;
-                            end else begin
-                                branch_o = 1'b0;
-                                jump_addr_o = `ZeroWord; 
-                            end
+                            branch_o = 1'b0;
+                            jump_addr_o = `ZeroWord;
                         end
                     end
                 `OptLB:

@@ -249,7 +249,7 @@ always @*
               d_wr_en = 1'b1;
             end
             $display("IO:Return");
-            $finish;
+           $finish;
           end
         endcase
       end else begin

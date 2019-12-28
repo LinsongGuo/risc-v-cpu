@@ -23,9 +23,9 @@
 module id_ex(
     input wire clk,
     input wire rst,
+    input wire rdy,
     
     //input from id
-    input wire id_prediction,
     input wire[`InstAddrBus] id_pc,
     input wire[`OpcodeBus] id_opcode,
     input wire[`OptBus] id_opt,
@@ -43,7 +43,6 @@ module id_ex(
     input wire branch_from_ex,
 
     //output to ex
-    output reg ex_prediction,
     output reg[`InstAddrBus] ex_pc,
     output reg[`OpcodeBus] ex_opcode,
     output reg[`OptBus] ex_opt,
@@ -58,7 +57,6 @@ module id_ex(
     
     always @ (posedge clk) begin
         if (rst == `Enable) begin
-            ex_prediction <= 1'b0;
             ex_pc <= `ZeroWord;
             ex_opcode <= `OpcodeNOP;
             ex_opt <= `OptNOP;
@@ -70,7 +68,6 @@ module id_ex(
             ex_shamt <= 5'b0;
         end else begin
             if (stall[2] == `Stop && stall[3] == `NoStop) begin
-                ex_prediction <= 1'b0;
                 ex_pc <= `ZeroWord;
                 ex_opcode <= `OpcodeNOP;
                 ex_opt <= `OptNOP;
@@ -82,7 +79,6 @@ module id_ex(
                 ex_shamt <= `NOPShamt;    
             end else if (stall[2] == `NoStop) begin
                 if (branch_from_ex == 1'b1) begin
-                    ex_prediction <= 1'b0;
                     ex_pc <= `ZeroWord;
                     ex_opcode <= `OpcodeNOP;
                     ex_opt <= `OptNOP;
@@ -93,7 +89,6 @@ module id_ex(
                     ex_imm <= `ZeroWord;
                     ex_shamt <= 5'b0;
                 end else begin
-                    ex_prediction <= id_prediction;
                     ex_pc <= id_pc;
                     ex_opcode <= id_opcode;
                     ex_opt <= id_opt;
