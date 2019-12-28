@@ -59,6 +59,12 @@ module If(
 	reg[`InstBus] inst;
 	reg[3: 0] if_state;
 	
+	initial begin
+		pc <= `ZeroWord;
+		inst <= `ZeroWord;
+		if_state <= 4'b0000;
+	end
+
 	always @ (posedge clk) begin
 		write_o <= 1'b0;
 		read_o <= 1'b0;
@@ -67,23 +73,23 @@ module If(
 			flag_o <= 1'b0;
 			pc_o <= `ZeroWord;
 			inst_o <= `ZeroWord;
-			pc <= `ZeroWord;
-			inst <= `ZeroWord;
-			if_state <= 4'b0000;
+			//pc <= `ZeroWord;
+			//inst <= `ZeroWord;
+			//if_state <= 4'b0000;
 		end else begin
 			if (branch_from_ex == 1'b1) begin
-				if (stall[0]) begin
+				if (!stall[0]) begin
 					addr_to_memctrl <= jump_addr_from_ex;
 					read_o <= 1'b1;
 					read_addr_o <= jump_addr_from_ex;
 					flag_o <= 1'b0;
 					pc <= jump_addr_from_ex;
-					inst <= `ZeroWord;
+					//inst <= `ZeroWord;
 					if_state <= 4'b0001;	
 				end else begin
 					flag_o <= 1'b0;
 					pc <= jump_addr_from_ex;
-					inst <= `ZeroWord;
+					//inst <= `ZeroWord;
 					if_state <= 4'b0000;
 				end
 			end else begin
@@ -95,10 +101,10 @@ module If(
 								read_o <= 1'b1;
 								read_addr_o <= pc;
 								flag_o <= 1'b0;
-								inst <= `ZeroWord;
+								//inst <= `ZeroWord;
 								if_state <= 4'b0001;	
 							end else begin
-								inst <= `ZeroWord;
+								//inst <= `ZeroWord;
 								if_state <= 4'b0000;
 							end
 						end 
@@ -179,7 +185,7 @@ module If(
 								if_state <= 4'b0010;
 							end
 						end
-								
+															
 					4'b0010:
 						begin
 							if (!stall[0]) begin
@@ -236,7 +242,7 @@ module If(
 					4'b0100:
 						begin
 							if (!stall[0]) begin
-								addr_to_memctrl <= pc + 32'b11;
+								//addr_to_memctrl <= pc + 32'b11;
 								inst <= {{8{1'b0}}, data_from_memctrl, inst[15: 0]};
 								if_state <= 4'b0101;
 							end else begin
@@ -262,9 +268,17 @@ module If(
 								flag_o <= 1'b1;
 								pc_o <= pc;
 								inst_o <= {data_from_memctrl, inst[23: 0]};
+								
 								pc <= pc + 32'b100;
 								inst <= {data_from_memctrl, inst[23: 0]};
 								if_state <= 4'b0000;
+								/*
+								addr_to_memctrl <= pc + 32'b100; 
+								read_o <= 1'b1;
+								read_addr_o <= pc + 32'b100;
+								pc <= pc + 32'b100;
+								if_state <= 4'b0001;	
+								*/
 							end else begin
 								write_o <= 1'b1;
 								write_addr_o <= pc;
@@ -280,8 +294,16 @@ module If(
 								flag_o <= 1'b1;
 								pc_o <= pc;
 								inst_o <= inst;
+								/*
 								pc <= pc + 32'b100;
 								if_state <= 4'b0000;
+								
+								*/
+								addr_to_memctrl <= pc + 32'b100; 
+								read_o <= 1'b1;
+								read_addr_o <= pc + 32'b100;
+								pc <= pc + 32'b100;
+								if_state <= 4'b0001;
 							end
 						end
 				endcase
