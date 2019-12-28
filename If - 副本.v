@@ -108,8 +108,8 @@ module If(
 								//inst <= `ZeroWord;
 								if_state <= 4'b0001;	
 							end else begin
-								read_o <= 1'b0;
-								write_o <= 1'b0;
+								//inst <= `ZeroWord;
+								if_state <= 4'b0000;
 							end
 						end 
 					4'b0001:
@@ -249,7 +249,7 @@ module If(
 					4'b0100:
 						begin
 							if (!stall[0]) begin
-								//addr_to_memctrl <= pc + 32'b11;
+								addr_to_memctrl <= pc + 32'b11;
 								inst <= {{8{1'b0}}, data_from_memctrl, inst[15: 0]};
 								if_state <= 4'b0101;
 							end else begin
@@ -276,15 +276,17 @@ module If(
 								pc_o <= pc;
 								inst_o <= {data_from_memctrl, inst[23: 0]};
 								
-								/*pc <= pc + 32'b100;
+								pc <= pc + 32'b100;
 								//inst <= {data_from_memctrl, inst[23: 0]};
 								if_state <= 4'b0000;
-								*/
+								
+								/*
 								addr_to_memctrl <= pc + 32'b100; 
 								read_o <= 1'b1;
 								read_addr_o <= pc + 32'b100;
 								pc <= pc + 32'b100;
 								if_state <= 4'b0001;	
+								*/
 							end else begin
 								write_o <= 1'b1;
 								write_addr_o <= pc;

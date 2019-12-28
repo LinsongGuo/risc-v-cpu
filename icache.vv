@@ -60,7 +60,7 @@ module icache(
 	
 	integer i;
 	initial begin
-		for(i = 0; i < 256; i = i + 1) begin
+		for(i = 0; i < 64; i = i + 1) begin
 			cache_valid[i] = 1'b0;
 			cache_tag[i] = 8'b0;
 			cache_data[i] = 32'b0;
@@ -75,12 +75,14 @@ module icache(
 		end
 	end
 
-	always @ (*) begin
+	always @ (posedge clk) begin
 		if (rst == `Enable || rdy == `Disable) begin
 			read_hit_o <= 1'b0;
 			read_inst_o <= `ZeroWord;
 		end else if (read_i == 1'b1) begin
 			if (read_tag_i == tag && valid == 1'b1) begin
+				//read_hit_o = 1'b0;
+				//read_inst_o = `ZeroWord;
 				read_hit_o <= 1'b1;
 				read_inst_o <= data;
 			end else begin
