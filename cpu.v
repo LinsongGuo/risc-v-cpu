@@ -27,6 +27,22 @@ module cpu(
 // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
+    //branch and BTB
+    wire [`InstAddrBus]pc_from_ex;
+    wire branch_from_ex;
+    wire jump_from_ex;
+    wire [`InstAddrBus]jump_addr_from_ex;
+    wire goback_from_ex;
+    wire [`InstAddrBus]goback_addr_from_ex;
+    wire read_from_if_to_BTB;
+    wire[`InstAddrBus] addr_from_if_to_BTB;
+    wire res_from_BTB_to_if;
+    wire [`InstAddrBus]addr_from_BTB_to_if;
+    wire jump_from_BTB_to_ifid;
+    wire jump_from_ifid_to_id;
+    wire jump_from_id_to_idex;
+    wire jump_from_idex_to_ex;
+
     //stallctrl
     wire stallreq_from_id;
     wire stallreq_from_mem;
@@ -57,10 +73,7 @@ module cpu(
     wire read_hit_from_icache_to_if;
     wire[`InstBus] read_inst_from_icache_to_if;
 
-    //branch 
-    wire branch_from_ex;
-    wire [`InstAddrBus]jump_addr_from_ex;
-
+    
     //if -- if_id
     wire[`InstAddrBus] pc_from_if_to_ifid;
     wire flag_from_if_to_ifid;
@@ -128,6 +141,23 @@ module cpu(
     wire[`RegAddrBus] waddr_from_memwb_to_rf;
     wire[`RegBus] wdata_from_memwb_to_rf;
 
+    BTB BTB0(
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
+        
+        .read_from_if(read_from_if_to_BTB),
+        .addr_from_if(addr_from_if_to_BTB),
+
+        .res_to_if(res_from_BTB_to_if),
+        .addr_to_if(addr_from_BTB_to_if),
+
+        .jump_to_ifid(jump_from_BTB_to_ifid),
+
+        .pc_from_ex(pc_from_ex),
+        .branch_from_ex(branch_from_ex),
+        .jump_from_ex(jump_from_ex),
+        .jump_addr_from_ex(jump_addr_from_ex)
+    );
+
     If if0(
         .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
         
@@ -140,8 +170,14 @@ module cpu(
         .write_addr_o(write_addr_from_if_to_icache),
         .write_inst_o(write_inst_from_if_to_icache),
 
-        .branch_from_ex(branch_from_ex),
-        .jump_addr_from_ex(jump_addr_from_ex),        
+        .res_from_BTB(res_from_BTB_to_if),
+        .addr_from_BTB(addr_from_BTB_to_if),
+
+        .read_to_BTB(read_from_if_to_BTB),
+        .addr_to_BTB(addr_from_if_to_BTB),
+
+        .goback_from_ex(goback_from_ex),
+        .goback_addr_from_ex(goback_addr_from_ex),        
 
         .data_from_memctrl(data_from_ctrl_to_if),
 
@@ -155,8 +191,7 @@ module cpu(
     );
 
    icache icache0(
-        .clk(clk_in),
-        .rst(rst_in),.rdy(rdy_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .read_i(read_from_if_to_icache),
         .read_addr_i(read_addr_from_if_to_icache),
@@ -174,13 +209,16 @@ module cpu(
 
         .stall(stall),
         
+        .jump_from_BTB(jump_from_BTB_to_ifid),
+
         .if_flag(flag_from_if_to_ifid),
         .if_pc(pc_from_if_to_ifid),
         .if_inst(inst_from_if_to_ifid),
 
-        .branch_from_ex(branch_from_ex),
+        .goback_from_ex(goback_from_ex),
 
         .id_flag(flag_from_ifid_to_id),
+        .id_jump(jump_from_ifid_to_id),
         .id_pc(pc_from_ifid_to_id),
         .id_inst(inst_from_ifid_to_id)
     );
@@ -189,6 +227,7 @@ module cpu(
         .rst(rst_in), .rdy(rdy_in),
 
         .flag_i(flag_from_ifid_to_id),
+        .jump_i(jump_from_ifid_to_id),
         .pc_i(pc_from_ifid_to_id),
         .inst_i(inst_from_ifid_to_id),
 
@@ -201,6 +240,7 @@ module cpu(
         .raddr2_o(raddr2_from_id_to_rf),
 
         .pc_o(pc_from_id_to_idex),
+        .jump_o(jump_from_id_to_idex),
         .opcode_o(opcode_from_id_to_idex),
         .opt_o(opt_from_id_to_idex),
         .rdata1_o(rdata1_from_id_to_idex),
@@ -215,6 +255,7 @@ module cpu(
         .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .id_pc(pc_from_id_to_idex),
+        .id_jump(jump_from_id_to_idex),
         .id_opcode(opcode_from_id_to_idex),
         .id_opt(opt_from_id_to_idex),
         .id_rdata1(rdata1_from_id_to_idex),
@@ -226,9 +267,10 @@ module cpu(
 
         .stall(stall),
 
-        .branch_from_ex(branch_from_ex),
+        .goback_from_ex(goback_from_ex),
 
         .ex_pc(pc_from_idex_to_ex),
+        .ex_jump(jump_from_idex_to_ex),
         .ex_opcode(opcode_from_idex_to_ex),
         .ex_opt(opt_from_idex_to_ex),
         .ex_rdata1(rdata1_from_idex_to_ex),
@@ -252,7 +294,9 @@ module cpu(
         .waddr_i(waddr_from_idex_to_ex),
         .imm_i(imm_from_idex_to_ex),
         .shamt_i(shamt_from_idex_to_ex),
+        .jump_i(jump_from_idex_to_ex),
 
+        .pc_o(pc_from_ex),
         .opcode_o(opcode_from_ex),
         .opt_o(opt_from_ex_to_exmem),
         .we_o(we_from_ex),
@@ -261,7 +305,10 @@ module cpu(
         .rdata2_o(rdata2_from_ex_to_exmem),
 
         .branch_o(branch_from_ex),
-        .jump_addr_o(jump_addr_from_ex)    
+        .jump_o(jump_from_ex),
+        .jump_addr_o(jump_addr_from_ex),
+        .goback_o(goback_from_ex),
+        .goback_addr_o(goback_addr_from_ex)    
     );
 
     ex_mem ex_mem0(
@@ -323,8 +370,7 @@ module cpu(
     );
 
     regfile regfile0(
-        .clk(clk_in),
-        .rst(rst_in), .rdy(rdy_in),
+        .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
         .wb_we_i(we_from_memwb_to_rf),
         .wb_waddr_i(waddr_from_memwb_to_rf),

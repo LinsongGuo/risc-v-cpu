@@ -26,6 +26,7 @@ module id(
 	
 	//input from if_id
 	input wire flag_i,
+	input wire jump_i,
 	input wire[`InstAddrBus] pc_i,
 	input wire[`InstBus] inst_i,
 	
@@ -41,6 +42,7 @@ module id(
 	
 	//output to ex
 	output reg[`InstAddrBus] pc_o,
+	output reg jump_o,
 	output reg[`OpcodeBus] opcode_o,
 	output reg[`OptBus] opt_o,
 	output reg[`RegBus] rdata1_o,
@@ -74,6 +76,7 @@ module id(
         	rdata2_o = `ZeroWord;
         	waddr_o = `NOPRegAddr;
         	shamt_o = 5'b0;
+        	jump_o = 1'b0;
         end else if (flag_i == 1'b1) begin
 	        raddr1_o = inst_i[19: 15];
 	        raddr2_o = inst_i[24: 20];
@@ -83,6 +86,7 @@ module id(
 	        rdata2_o = rdata2_i;
 	        waddr_o = inst_i[11: 7];
 	        shamt_o = inst_i[24: 20];
+	        jump_o = jump_i;
 	        case(opcode)
 	            `OpcodeLUI:
 	                begin
@@ -378,6 +382,7 @@ module id(
         	rdata2_o = `ZeroWord;
         	waddr_o = `NOPRegAddr;
         	shamt_o = 5'b0;
+        	jump_o = 1'b0;
     	end
     end
 	

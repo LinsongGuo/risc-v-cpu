@@ -27,6 +27,7 @@ module id_ex(
     
     //input from id
     input wire[`InstAddrBus] id_pc,
+    input wire id_jump,
     input wire[`OpcodeBus] id_opcode,
     input wire[`OptBus] id_opt,
     input wire[`RegBus] id_rdata1,
@@ -40,10 +41,11 @@ module id_ex(
     input wire[`StallBus] stall,
 
     //input from ex
-    input wire branch_from_ex,
+    input wire goback_from_ex,
 
     //output to ex
     output reg[`InstAddrBus] ex_pc,
+    output reg ex_jump,
     output reg[`OpcodeBus] ex_opcode,
     output reg[`OptBus] ex_opt,
     output reg[`RegBus] ex_rdata1,
@@ -66,6 +68,7 @@ module id_ex(
             ex_waddr <= `NOPRegAddr;
             ex_imm <= `ZeroWord;
             ex_shamt <= 5'b0;
+            ex_jump <= 1'b0;
         end else begin
             if (stall[2] == `Stop && stall[3] == `NoStop) begin
                 ex_pc <= `ZeroWord;
@@ -77,8 +80,9 @@ module id_ex(
                 ex_waddr <= `NOPRegAddr;
                 ex_imm <= `ZeroWord;
                 ex_shamt <= `NOPShamt;    
+                ex_jump <= 1'b0;
             end else if (stall[2] == `NoStop) begin
-                if (branch_from_ex == 1'b1) begin
+                if (goback_from_ex == 1'b1) begin
                     ex_pc <= `ZeroWord;
                     ex_opcode <= `OpcodeNOP;
                     ex_opt <= `OptNOP;
@@ -88,6 +92,7 @@ module id_ex(
                     ex_waddr <= `NOPRegAddr;
                     ex_imm <= `ZeroWord;
                     ex_shamt <= 5'b0;
+                    ex_jump <= 1'b0;
                 end else begin
                     ex_pc <= id_pc;
                     ex_opcode <= id_opcode;
@@ -97,7 +102,8 @@ module id_ex(
                     ex_we <= id_we;
                     ex_waddr <= id_waddr;
                     ex_imm <= id_imm;
-                    ex_shamt <= id_shamt;   
+                    ex_shamt <= id_shamt; 
+                    ex_jump <= id_jump;  
                 end
             end
         end

@@ -36,9 +36,17 @@ module If(
 	output reg[31: 0] write_addr_o,
 	output reg[`InstBus] write_inst_o,
 
+	//input from BTB
+	input wire res_from_BTB,
+	input wire[31: 0] addr_from_BTB,
+
+	//output to BTB
+	output reg read_to_BTB,
+	output reg[31: 0] addr_to_BTB, 
+
 	//input from ex(branches)
-	input wire branch_from_ex,
-	input wire[`InstAddrBus] jump_addr_from_ex,
+	input wire goback_from_ex,
+	input wire[`InstAddrBus] goback_addr_from_ex,
 
 	//input from memctrl
 	input wire[`ByteBus] data_from_memctrl,
@@ -73,25 +81,26 @@ module If(
 			inst_o <= `ZeroWord;
 			write_o <= 1'b0;
 			read_o <= 1'b0;
+			read_to_BTB <= 1'b0;
+			addr_to_BTB <= 1'b0;
 			//pc <= `ZeroWord;
 			//inst <= `ZeroWord;
 			//if_state <= 4'b0000;
 		end else begin
-			if (branch_from_ex == 1'b1) begin
+			if (goback_from_ex == 1'b1) begin
+				write_o <= 1'b0;
+				read_to_BTB <= 1'b0;
+				flag_o <= 1'b0;
 				if (!stall[0]) begin
-					addr_to_memctrl <= jump_addr_from_ex;
+					addr_to_memctrl <= goback_addr_from_ex;
 					read_o <= 1'b1;
-					read_addr_o <= jump_addr_from_ex;
-					write_o <= 1'b0;
-					flag_o <= 1'b0;
-					pc <= jump_addr_from_ex;
+					read_addr_o <= goback_addr_from_ex;
+					pc <= goback_addr_from_ex;
 					//inst <= `ZeroWord;
 					if_state <= 4'b0001;	
 				end else begin
 					read_o <= 1'b0;
-					write_o <= 1'b0;
-					flag_o <= 1'b0;
-					pc <= jump_addr_from_ex;
+					pc <= goback_addr_from_ex;
 					//inst <= `ZeroWord;
 					if_state <= 4'b0000;
 				end
@@ -99,53 +108,72 @@ module If(
 				case (if_state)
 					4'b0000:
 						begin
+							write_o <= 1'b0;
 							if (!stall[0]) begin
 								addr_to_memctrl <= pc;
 								read_o <= 1'b1;
 								read_addr_o <= pc;
-								write_o <= 1'b0;
+								read_to_BTB <= 1'b0;
 								flag_o <= 1'b0;
-								//inst <= `ZeroWord;
 								if_state <= 4'b0001;	
 							end else begin
 								read_o <= 1'b0;
-								write_o <= 1'b0;
 							end
 						end 
 					4'b0001:
 						begin
+							write_o <= 1'b0;
 							if (!stall[0]) begin
-								if (read_hit_i == 1'b1) begin
-									addr_to_memctrl <= pc + 32'b100; 
+								if (res_from_BTB == 1'b1) begin
+									read_to_BTB <= 1'b0;
+									addr_to_memctrl <= addr_from_BTB;
 									read_o <= 1'b1;
-									read_addr_o <= pc + 32'b100;
-									flag_o <= 1'b1;
-									pc_o <= pc;
-									inst_o <= read_inst_i;
-									pc <= pc + 32'b100;
-									inst <= `ZeroWord;
-									if_state <= 4'b0001;	
-								end else begin
-									read_o <= 1'b0;
-									addr_to_memctrl <= pc + 32'b1;
+									read_addr_o <= addr_from_BTB;
 									flag_o <= 1'b0;
-									if_state <= 4'b0010;
+									pc <= addr_from_BTB;
+									//if_state = 4'b0001;
+								end else begin
+									if (read_hit_i == 1'b1) begin
+										addr_to_memctrl <= pc + 32'b100; 
+										read_o <= 1'b1;
+										read_addr_o <= pc + 32'b100;
+										read_to_BTB <= 1'b1;
+										addr_to_BTB <= pc;
+										flag_o <= 1'b1;
+										pc_o <= pc;
+										inst_o <= read_inst_i;
+										pc <= pc + 32'b100;
+										//inst <= `ZeroWord;
+										//if_state <= 4'b0001;	
+									end else begin
+										addr_to_memctrl <= pc + 32'b1;
+										read_o <= 1'b0;
+										read_to_BTB <= 1'b0;
+										flag_o <= 1'b0;
+										if_state <= 4'b0010;
+									end
 								end
 							end else begin
-								if (read_hit_i == 1'b1) begin
-									read_o <= 1'b0;
-									inst <= read_inst_i;
-									if_state <= 4'b1101;	
-								end begin
-									read_o <= 1'b0;
-									if_state <= 4'b1001;
+								read_o <= 1'b0;	
+								//read_to_BTB <= 1'b0;
+								if (res_from_BTB == 1'b1) begin
+									pc <= addr_from_BTB;
+									if_state = 4'b0000;
+								end else begin
+									if (read_hit_i == 1'b1) begin
+										inst <= read_inst_i;
+										if_state <= 4'b1101;	
+									end else begin
+										if_state <= 4'b1001;
+									end
 								end
 							end
-						end
+					    end
 
 					4'b1001:
 						begin
 							if (!stall[0]) begin
+								read_to_BTB <= 1'b0;
 								addr_to_memctrl <= pc + 32'b1;
 								flag_o <= 1'b0;
 								if_state <= 4'b0010;
@@ -283,6 +311,8 @@ module If(
 								addr_to_memctrl <= pc + 32'b100; 
 								read_o <= 1'b1;
 								read_addr_o <= pc + 32'b100;
+								read_to_BTB <= 1'b1;
+								addr_to_BTB <= pc;
 								pc <= pc + 32'b100;
 								if_state <= 4'b0001;	
 							end else begin
@@ -309,6 +339,8 @@ module If(
 								addr_to_memctrl <= pc + 32'b100; 
 								read_o <= 1'b1;
 								read_addr_o <= pc + 32'b100;
+								read_to_BTB <= 1'b1;
+								addr_to_BTB <= pc;		
 								pc <= pc + 32'b100;
 								if_state <= 4'b0001;
 							end
