@@ -41,20 +41,20 @@ module BTB(
 	input wire[31: 0] jump_addr_from_ex
 	);
 
-	(* ram_style = "registers" *) reg valid_table[31: 0];
-	(* ram_style = "registers" *) reg[1: 0] predict_table[31: 0];
-	(* ram_style = "registers" *) reg[10: 0] tag_table[31: 0];
-	(* ram_style = "registers" *) reg[17: 0] addr_table[31: 0];
+	(* ram_style = "registers" *) reg valid_table[63: 0];
+	(* ram_style = "registers" *) reg[1: 0] predict_table[63: 0];
+	(* ram_style = "registers" *) reg[9: 0] tag_table[63: 0];
+	(* ram_style = "registers" *) reg[17: 0] addr_table[63: 0];
 
-	wire[4: 0] index_from_if;
-	wire[10: 0] tag_from_if;
+	wire[5: 0] index_from_if;
+	wire[9: 0] tag_from_if;
 
-	assign index_from_if = addr_from_if[6: 2];
-	assign tag_from_if = addr_from_if[17: 7];
+	assign index_from_if = addr_from_if[7: 2];
+	assign tag_from_if = addr_from_if[17: 8];
 
 	wire valid_if;
 	wire predict_if;
-	wire[10: 0] tag_if;
+	wire[9: 0] tag_if;
 	wire[31: 0] addr_if;
 	
 	assign valid_if = valid_table[index_from_if];
@@ -62,18 +62,18 @@ module BTB(
 	assign tag_if = tag_table[index_from_if];
 	assign addr_if = addr_table[index_from_if]; 
 	
-	wire[4: 0] index_from_ex;
-	wire[10: 0] tag_from_ex;
+	wire[5: 0] index_from_ex;
+	wire[9: 0] tag_from_ex;
 	
-	assign index_from_ex = pc_from_ex[6 : 2];
-	assign tag_from_ex = pc_from_ex[17: 7];
+	assign index_from_ex = pc_from_ex[7: 2];
+	assign tag_from_ex = pc_from_ex[17: 8];
 	
 	integer i;
 	initial begin
 		for(i = 0; i < 64; i = i + 1) begin
 			valid_table[i] = 1'b0;
 			predict_table[i] = 2'b0;
-			tag_table[i] = 11'b0;
+			tag_table[i] = 10'b0;
 			addr_table[i] = 18'b0;
 		end
 	end
