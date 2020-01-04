@@ -41,7 +41,7 @@ Memory Controller主要用来处理IF与MEM同时访问内存的Structure Hazard
 IF阶段取出一条指令需要6个周期，其实我们可以在收到最后一个byte的同时，向内存发送下一条指令的第一个byte的地址，这样IF取指就只需要5个周期。在实际实践过程中，加速效果还算明显。
 
 \subsection{Inst-Cache}
-256行的直接映射缓存。在Inst-Cache连续hit的情况下，IF可以连续向IF/ID连续发送指令（一个周期一条），这样加速效果比较明显。在210MHz下，Inst-Cache将pi测试的运行时间从1.5s左右优化到了0.8s左右。
+256行的直接映射缓存。在Inst-Cache连续hit的情况下，IF可以连续向IF/ID连续发送指令（一个周期一条），这样加速效果比较明显。在200MHz下，Inst-Cache将pi测试的运行时间从1.5s左右优化到了0.8s左右。
 \begin{figure}[h]
     \centering
 	\includegraphics[width=1\linewidth]{4.png}
@@ -57,10 +57,10 @@ IF阶段取出一条指令需要6个周期，其实我们可以在收到最后�
 	\includegraphics[width=1\linewidth]{2.png}
 \end{figure}
 
-这样实现之后，加速效果还算可以，在200MHz下，pi测试的运行时间由0.8s左右缩短到0.7s左右。
+这样实现之后，加速效果还算可以，在200MHz下，pi测试的运行时间由0.8s左右缩短到0.6s左右。
 \newpage
 \section{性能表现}
-CPU经Cache、BTB、BHT等上述提到的内容加速后，最高可以升频至210MHz，pi测试最快可以跑到0.57s.
+CPU经Cache、BTB、BHT等上述提到的内容加速后，最高可以升频至210MHz-220MHz，pi测试最快可以跑到0.57s.
 \begin{figure}[h]
     \centering
 	\includegraphics[width=1\linewidth]{5.png}

@@ -57,10 +57,10 @@ IF阶段取出一条指令需要6个周期，其实我们可以在收到最后�
 	\includegraphics[width=1\linewidth]{2.png}
 \end{figure}
 
-这样实现之后，加速效果还算可以，在200MHz下，pi测试的运行时间由0.8s左右缩短到0.7s左右。
+这样实现之后，加速效果还算可以，在200MHz下，pi测试的运行时间由0.8s左右缩短到0.6s左右。
 \newpage
 \section{性能表现}
-CPU经Cache、BTB、BHT等上述提到的内容加速后，最高可以升频至210MHz-220MHz，pi测试最快可以跑到0.57s.
+CPU经Cache、BTB、BHT等上述提到的内容加速后，最高可以升频至210MHz，pi测试最快可以跑到0.57s.
 \begin{figure}[h]
     \centering
 	\includegraphics[width=1\linewidth]{5.png}
